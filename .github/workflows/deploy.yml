@@ -1,0 +1,74 @@
+name: Deploy a GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Permite un único despliegue concurrente
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          # Para un "project site" la base es el nombre del repo.
+          # Para "user/org site" (repo <usuario>.github.io) o dominio propio,
+          # pon BASE="/" en las variables/secretos del repositorio.
+          SITE: https://${{ github.repository_owner }}.github.io
+          BASE: /${{ github.event.repository.name }}
+          # API key de TMDB: añádela en Settings → Secrets and variables →
+          # Actions → New repository secret, con nombre TMDB_API_KEY.
+          PUBLIC_TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          PUBLIC_TMDB_LANG: es-ES
+          PUBLIC_TMDB_REGION: ES
+          # Login de un solo usuario. Crea los secretos AUTH_USER y
+          # AUTH_PASSWORD en Settings → Secrets and variables → Actions.
+          # Si no los defines, el sitio queda con acceso abierto.
+          PUBLIC_AUTH_USER: ${{ secrets.AUTH_USER }}
+          PUBLIC_AUTH_PASSWORD: ${{ secrets.AUTH_PASSWORD }}
+        run: |
+          pnpm run build
+          touch dist/.nojekyll
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,227 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================================================
+   Cortes TV — Sistema de diseño Apple HIG / Liquid Glass (ver DESIGN.md)
+   ========================================================================== */
+
+@layer base {
+  :root {
+    /* Acento (System Blue de Apple) */
+    --accent: 211 100% 50%; /* #007AFF */
+    --accent-hover: 211 100% 45%;
+
+    /* Superficies (modo claro) */
+    --bg: 0 0% 96%; /* fondo de app, gris cálido */
+    --surface: 0 0% 100%; /* tarjetas sólidas */
+    --text: 0 0% 9%;
+    --text-muted: 0 0% 45%;
+    --border: 0 0% 0% / 0.08;
+
+    /* Vidrio */
+    --glass-bg: 255 255 255 / 0.55;
+    --glass-border: 255 255 255 / 0.6;
+
+    color-scheme: light;
+  }
+
+  .dark {
+    --bg: 0 0% 7%;
+    --surface: 0 0% 12%;
+    --text: 0 0% 98%;
+    --text-muted: 0 0% 60%;
+    --border: 255 255 255 / 0.1;
+
+    --glass-bg: 30 30 30 / 0.5;
+    --glass-border: 255 255 255 / 0.12;
+
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    /* Sin barra de scroll vertical en toda la app (se mantiene el scroll) */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
+
+  body {
+    @apply bg-bg text-content font-sans antialiased;
+    min-height: 100dvh;
+    /* La interfaz es una app: nada de selección accidental de texto */
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior-y: none;
+  }
+
+  /* Inputs a 16px mínimo → evita el zoom automático de iOS al enfocar */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  /* Oculta el botón nativo "limpiar" de los inputs de búsqueda (usamos uno propio) */
+  input[type='search']::-webkit-search-cancel-button,
+  input[type='search']::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+  }
+  input[type='search'] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Permite seleccionar solo el contenido real (sinopsis, etc.) */
+  .selectable {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+@layer components {
+  /* Vidrio (Liquid Glass): siempre sobre el fondo atmosférico */
+  .glass {
+    @apply bg-white/55 dark:bg-neutral-900/50
+           backdrop-blur-xl backdrop-saturate-150
+           border border-white/60 dark:border-white/10
+           shadow-glass rounded-3xl;
+  }
+  .glass-bar {
+    @apply bg-white/60 dark:bg-neutral-900/55
+           backdrop-blur-md backdrop-saturate-150
+           border border-white/60 dark:border-white/10
+           shadow-glass;
+  }
+
+  /* Botón primario */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 min-h-11 px-5 rounded-xl
+           bg-accent text-white font-semibold
+           shadow-[0_4px_14px_hsl(var(--accent)/0.4)]
+           transition-all duration-150 ease-apple
+           hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50
+           disabled:opacity-40 disabled:pointer-events-none;
+  }
+  /* Botón secundario (vidrio) */
+  .btn-glass {
+    @apply glass !rounded-xl min-h-11 px-5 inline-flex items-center justify-center gap-2
+           font-medium text-neutral-800 dark:text-neutral-100
+           transition-transform duration-150 ease-apple
+           hover:scale-[1.02] active:scale-[0.98]
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 min-h-11 px-5 rounded-xl
+           bg-red-500/10 text-red-500 font-semibold
+           transition-all duration-150 ease-apple hover:scale-[1.02] active:scale-[0.98];
+  }
+  /* Campo de texto */
+  .field {
+    @apply w-full min-h-11 px-4 rounded-xl
+           bg-white/70 dark:bg-neutral-800/60 backdrop-blur
+           border border-black/5 dark:border-white/10
+           text-base placeholder:text-neutral-400
+           focus:outline-none focus:ring-2 focus:ring-accent/50 transition;
+  }
+  /* Chip / filtro */
+  .chip {
+    @apply inline-flex items-center gap-1.5 min-h-9 px-3.5 rounded-full
+           text-sm font-medium text-muted
+           bg-black/[0.04] dark:bg-white/[0.06] border border-transparent
+           transition-all duration-150 ease-apple active:scale-95;
+  }
+  .chip[aria-pressed='true'],
+  .chip.is-active {
+    @apply bg-accent/10 text-accent border-accent/20;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Carrusel horizontal con inercia */
+  .h-scroll {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .h-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .h-scroll > * {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+  }
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* Safe areas iOS */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .top-safe {
+    top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  }
+}
+
+/* Skeleton de carga */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: hsl(var(--text) / 0.06);
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, hsl(var(--text) / 0.06), transparent);
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Reducir movimiento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

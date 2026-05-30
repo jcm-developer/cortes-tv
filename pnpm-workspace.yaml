@@ -1,0 +1,10 @@
+allowBuilds:
+  esbuild: set this to true or false
+  sharp: set this to true or false
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+
+# Evita que pnpm relance "install" al ejecutar scripts (no usamos workspace).
+verifyDepsBeforeRun: false

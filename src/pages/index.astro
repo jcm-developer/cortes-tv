@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro';
+import App from '../components/App.svelte';
+---
+
+<Layout title="Cortes TV — Películas y series">
+  <!--
+    La app es totalmente cliente (usa localStorage y la API de TMDB desde el
+    navegador). client:only evita el render en servidor de la isla.
+  -->
+  <App client:only="svelte" />
+</Layout>

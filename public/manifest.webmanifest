@@ -1,0 +1,17 @@
+{
+  "name": "Cortes TV",
+  "short_name": "Cortes TV",
+  "description": "Gestiona tus películas y series con un diseño inmersivo estilo Apple TV.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000003",
+  "theme_color": "#000003",
+  "icons": [
+    { "src": "logo.png", "sizes": "1024x1024", "type": "image/png" },
+    { "src": "logo.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
