@@ -24,7 +24,7 @@ Cortes TV is a personal movie and TV show tracker with an Apple Liquid Glass loo
 one user on desktop and iPhone. It is a fully static site: titles come from TheMovieDB (TMDB)
 straight from the browser, and the user's library (pending and watched titles, ratings and
 watched dates) lives in `localStorage` and, when Convex is configured, syncs live with a
-Convex table behind an email and password login. JSON export and import serve as backups.
+Convex table behind an email and password login.
 The UI copy is in Spanish.
 
 | Layer | Technology |
@@ -82,7 +82,7 @@ when the area changes.
 |---|---|
 | `auth.md` | Convex Auth login, build-time gate fallback, sessions |
 | `catalog.md` | TMDB client, discovery rows, search, title detail data, genres |
-| `library.md` | Pending and watched titles, ratings, watched dates, persistence, sync, backup |
+| `library.md` | Pending and watched titles, ratings, watched dates, persistence, sync |
 | `recommendations.md` | The "Para ti" row: seeds, scoring, genre affinity |
 | `ui.md` | App shell, navigation, detail view, sheets, theme, toasts |
 

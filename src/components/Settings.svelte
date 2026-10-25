@@ -1,35 +1,16 @@
 <script lang="ts">
-  /** Renders the settings sheet content: library stats, account and sync, theme, JSON backup and logout. */
+  /** Renders the settings sheet content: library stats, account and sync, theme and logout. */
   import Icon from './Icon.svelte';
-  import { exportJSON, importJSON, pendingTitles, watchedTitles } from '../lib/store';
-  import { showToast, theme, settingsOpen, type Theme } from '../lib/ui';
+  import { pendingTitles, watchedTitles } from '../lib/store';
+  import { theme, settingsOpen, type Theme } from '../lib/ui';
   import { authRequired, cloudUser, logout } from '../lib/auth';
   import { cloudEnabled } from '../lib/convex';
   import { syncState, syncNow, signOut } from '../lib/sync';
 
   const cloud = cloudEnabled();
 
-  let fileInput: HTMLInputElement;
-  let importMode = $state<'replace' | 'merge'>('merge');
   /** Whether the "unsynced changes will be lost" confirmation is showing. */
   let confirmLogout = $state(false);
-
-  function onExport() {
-    exportJSON();
-    showToast('Copia exportada');
-  }
-  function pickFile() {
-    fileInput?.click();
-  }
-  async function onFile(e: Event) {
-    const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    const text = await file.text();
-    const res = importJSON(text, importMode);
-    showToast(res.message);
-    input.value = '';
-  }
 
   function onLogout() {
     if (cloud && $syncState.pending > 0 && !confirmLogout) {
@@ -115,33 +96,6 @@
         </button>
       {/each}
     </div>
-  </section>
-
-  <section>
-    <p class="group-label">Copia de seguridad</p>
-    <div class="group-list">
-      <button type="button" class="flex items-center gap-3 p-3.5 text-left font-medium active:bg-fill" onclick={onExport}>
-        <Icon name="download" size={20} /> Exportar a JSON
-      </button>
-      <button type="button" class="flex items-center gap-3 p-3.5 text-left font-medium active:bg-fill" onclick={pickFile}>
-        <Icon name="upload" size={20} /> Importar desde JSON
-      </button>
-      <div class="flex items-center justify-between gap-3 p-3.5">
-        <span class="text-[15px] text-muted">Al importar</span>
-        <div class="glass-segmented glass-segmented--plain" role="radiogroup" aria-label="Modo de importación">
-          <span class="glass-indicator" style="--count: 2; --index: {importMode === 'merge' ? 0 : 1}" aria-hidden="true"></span>
-          <button type="button" class="glass-segmented__option min-h-8 px-3" role="radio" aria-checked={importMode === 'merge'} onclick={() => (importMode = 'merge')}>Combinar</button>
-          <button type="button" class="glass-segmented__option min-h-8 px-3" role="radio" aria-checked={importMode === 'replace'} onclick={() => (importMode = 'replace')}>Reemplazar</button>
-        </div>
-      </div>
-    </div>
-    <p class="mt-2 px-1 text-[13px] text-muted leading-relaxed">
-      {cloud
-        ? 'Tu biblioteca se sincroniza con tu cuenta; el JSON es una copia propia.'
-        : 'Tu biblioteca se guarda en este dispositivo; exporta un JSON para conservarla o moverla.'}
-      Las copias antiguas con listas también se importan: lo valorado pasa a Vistas y el resto a Pendientes.
-    </p>
-    <input bind:this={fileInput} type="file" accept="application/json,.json" onchange={onFile} hidden />
   </section>
 
   {#if authRequired()}

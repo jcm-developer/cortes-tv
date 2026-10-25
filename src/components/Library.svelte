@@ -129,36 +129,37 @@
   </div>
 
   {#if segmentTitles.length > 0}
-    <div class="mt-4 mb-3 flex items-center gap-2 max-w-xl">
-      <div class="flex flex-1 min-w-0 items-center gap-2.5 h-11 px-3.5 rounded-xl bg-fill text-muted">
-        <Icon name="search" size={18} />
-        <input
-          type="search"
-          placeholder={$librarySegment === 'pending' ? 'Buscar en pendientes' : 'Buscar en vistas'}
-          bind:value={query}
-          enterkeyhint="search"
-          autocomplete="off"
-          spellcheck="false"
-          aria-label="Buscar en la biblioteca"
-          class="flex-1 min-w-0 bg-transparent border-none outline-none text-content placeholder:text-muted"
-        />
-        {#if query}
-          <button type="button" class="grid h-7 w-7 place-items-center rounded-full bg-fill text-content" onclick={() => (query = '')} aria-label="Limpiar búsqueda">
-            <Icon name="close" size={15} />
-          </button>
-        {/if}
-      </div>
+    <div class="glass-search mt-4 mb-3 max-w-xl" role="search">
+      <Icon name="search" size={19} />
+      <input
+        class="glass-search__input"
+        type="search"
+        inputmode="search"
+        placeholder={$librarySegment === 'pending' ? 'Buscar en pendientes' : 'Buscar en vistas'}
+        bind:value={query}
+        enterkeyhint="search"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-label="Buscar en la biblioteca"
+      />
+      {#if query}
+        <button type="button" class="glass-btn glass-btn--plain glass-btn--sm glass-btn--icon" onclick={() => (query = '')} aria-label="Limpiar búsqueda">
+          <Icon name="close" size={16} />
+        </button>
+      {/if}
+      <!-- Flat inside the pill (no glass on glass); accent while filters are set -->
       <button
         type="button"
-        class="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl transition-colors
-               {sheetFilterCount ? 'bg-accent text-white' : 'bg-fill text-content'}"
+        class="glass-btn glass-btn--plain glass-btn--sm glass-btn--icon {sheetFilterCount ? 'glass-btn--prominent' : ''}"
         onclick={() => (filtersOpen = true)}
         aria-label={sheetFilterCount ? `Filtros, ${sheetFilterCount} activos` : 'Filtros'}
         aria-haspopup="dialog"
       >
-        <Icon name="sliders" size={20} />
+        <Icon name="sliders" size={18} />
         {#if sheetFilterCount}
-          <span class="absolute -top-1.5 -right-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-content px-1 text-[11px] font-bold text-bg tabular-nums" aria-hidden="true">{sheetFilterCount}</span>
+          <span class="absolute -top-1 -right-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-content px-1 text-[11px] font-bold text-bg tabular-nums" aria-hidden="true">{sheetFilterCount}</span>
         {/if}
       </button>
     </div>

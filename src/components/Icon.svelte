@@ -23,8 +23,6 @@
       | 'trash'
       | 'arrow-right'
       | 'ellipsis'
-      | 'download'
-      | 'upload'
       | 'film'
       | 'tv'
       | 'sliders'
@@ -104,10 +102,6 @@
     <circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" />
     <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
     <circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" />
-  {:else if name === 'download'}
-    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" />
-  {:else if name === 'upload'}
-    <path d="M12 21V9m0 0 4 4m-4-4-4 4M4 3h16" />
   {:else if name === 'film'}
     <rect x="3" y="4" width="18" height="16" rx="2.5" />
     <path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4" />

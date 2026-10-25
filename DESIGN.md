@@ -86,7 +86,7 @@ Los tokens derivados (`--glass-bg`, `--glass-shadow-rim`...) se recalculan en ca
 | `.glass-tabs` + `.glass-tabs__tab` + `.glass-indicator` | Barra de pestañas con indicador deslizante (solo móvil) | `TabBar.svelte` |
 | `.glass-btn` | Botón; variantes `--icon`, `--sm`, `--prominent` (acento), `--success` (verde), `--plain` (dentro de vidrio), `--danger` | Cabeceras, detalle, hojas |
 | `.glass-segmented` + `__option` + `.glass-indicator` | Control segmentado; `--plain` dentro de hojas | Biblioteca, Ajustes |
-| `.glass-search` + `__input` | Buscador en píldora, fijo al hacer scroll | Buscar |
+| `.glass-search` + `__input` | Buscador en píldora (fijo al hacer scroll en Buscar); los botones de dentro, planos | Buscar, Biblioteca |
 | `.glass-toast` | Aviso flotante sobre la barra de pestañas | `Toast.svelte` |
 | `.glass-sheet` (+ `--bottom`) | Hoja: pegada al borde inferior en móvil, con asa y arrastre para cerrar; centrada en escritorio | `Sheet.svelte`, login |
 

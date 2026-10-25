@@ -50,7 +50,6 @@
   down. Desktop: one glass navigation bar on top and a narrower content column. Installable as a
   PWA that opens offline (service worker).
 - Without Convex: an optional build-time login and data in `localStorage` only.
-- JSON export and import (replace or merge), including backups from the old list format.
 
 The UI is in Spanish.
 
@@ -84,7 +83,6 @@ flowchart LR
   app --> tmdb[(TMDB API)]
   app --> ls[(localStorage)]
   ls <-. live sync .-> cx[(Convex titles)]
-  ls --> backup[JSON backup file]
   gh[GitHub push] --> pages[Cloudflare Pages]
   pages --> app
 ```
