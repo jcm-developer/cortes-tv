@@ -157,10 +157,10 @@ El efecto vidrio es la firma visual. Se construye con **fondo semitransparente +
 
 ```js
 // Radios
-rounded-lg   // 8px  — inputs, chips
-rounded-xl   // 12px — botones
-rounded-2xl  // 16px — tarjetas
-rounded-3xl  // 24px — paneles, modales, hojas
+rounded-lg   // 8px: inputs, chips
+rounded-xl   // 12px: botones
+rounded-2xl  // 16px: tarjetas
+rounded-3xl  // 24px: paneles, modales, hojas
 rounded-full // pills, avatares, FAB
 ```
 

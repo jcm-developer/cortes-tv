@@ -1,0 +1,39 @@
+#!/bin/sh
+# Enforces the commit format in docs/workflow.md: one line, Conventional Commits, English,
+# no body and no attribution trailer. CI runs this same file over every pushed commit.
+# Installed with: git config core.hooksPath .githooks
+
+msg_file="$1"
+
+# Drop comment lines and everything below the scissors line, as git's cleanup does.
+msg=$(sed -e '/^# -* >8 -*$/,$d' -e '/^#/d' "$msg_file")
+subject=$(printf '%s\n' "$msg" | sed -n '/[^[:space:]]/{p;q;}')
+lines=$(printf '%s\n' "$msg" | grep -c '[^[:space:]]')
+
+# Messages git writes itself pass untouched.
+case "$subject" in
+  "Merge "* | "Revert \""* | "fixup! "* | "squash! "* | "amend! "*) exit 0 ;;
+esac
+
+fail() {
+  echo "commit-msg: $1" >&2
+  echo "  got:      $subject" >&2
+  echo "  expected: <type>(<optional scope>): <lowercase summary in English>" >&2
+  echo "  types:    feat fix docs style refactor perf test build ci chore revert" >&2
+  exit 1
+}
+
+if printf '%s\n' "$msg" | grep -qi '^co-authored-by:'; then
+  fail "no Co-Authored-By or other attribution trailer"
+fi
+[ "$lines" -le 1 ] || fail "one line only, no body"
+printf '%s' "$subject" | grep -Eq '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?!?: [a-z0-9`]' ||
+  fail "not a Conventional Commits subject with a lowercase summary"
+[ "${#subject}" -le 72 ] || fail "subject longer than 72 characters (${#subject})"
+case "$subject" in
+  *.) fail "no trailing period" ;;
+esac
+if printf '%s' "$subject" | grep -q '[áéíóúñÁÉÍÓÚÑ¿¡]'; then
+  fail "write the subject in English"
+fi
+exit 0

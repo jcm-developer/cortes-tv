@@ -1,0 +1,20 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "includeCoAuthoredBy": false,
+  "extraKnownMarketplaces": {
+    "project-standards": {
+      "source": {
+        "source": "github",
+        "repo": "jcm-developer/project-standards"
+      },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "project-standards@project-standards": true
+  }
+}

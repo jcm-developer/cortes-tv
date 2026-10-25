@@ -1,108 +1,132 @@
-# Cortes TV 🎬
+<p align="center">
+  <img src="public/logo.png" alt="Cortes TV logo" width="96" />
+</p>
 
-Gestor de **películas y series** con estética **Apple** (*Human Interface* /
-*Liquid Glass*), responsive y pensado también para **iPhone**. Sitio
-**estático** (Astro) que se despliega en **GitHub Pages** y guarda tus listas en
-el navegador.
+<h1 align="center">Cortes TV</h1>
 
-Datos de [TheMovieDB](https://www.themoviedb.org/). El sistema de diseño está
-documentado en [`DESIGN.md`](DESIGN.md).
+<p align="center">
+  A personal movie and TV show tracker with an Apple Liquid Glass look, built for desktop and
+  iPhone. A static site on GitHub Pages: titles come from TMDB, your lists stay in your browser.
+</p>
 
-## Características
+<p align="center">
+  <a href="#features">Features</a> ·
+  <a href="#tech-stack">Tech stack</a> ·
+  <a href="#getting-started">Getting started</a> ·
+  <a href="#documentation">Documentation</a>
+</p>
 
-- **Diseño Apple / Liquid Glass** (Tailwind): glassmorphism con `backdrop-blur`
-  sobre un fondo atmosférico de blobs, acento *System Blue*, radios grandes,
-  sombras suaves y microinteracciones con curva `ease-apple`.
-- **Modo claro / oscuro / sistema** con conmutador y sin parpadeo al cargar.
-- **Navegación responsive**: menú horizontal en PC que colapsa a **menú
-  hamburguesa** (drawer lateral) en móvil. Respeta las *safe areas* del iPhone.
-- Carátulas protagonistas, carruseles horizontales con inercia.
-- **Login de un solo usuario** (credenciales por variable de entorno / secreto),
-  con sesión persistente **sin caducidad** en `localStorage`.
-- **Página de búsqueda** (`/search/multi`) y añadir títulos a listas en un toque.
-- **Listas propias**: no hay listas por defecto, las creas tú. Añadir, **mover**
-  y **quitar** títulos; **filtrar y ordenar** por tipo, género, año o nota.
-- **Detalle inmersivo**: *backdrop* a pantalla completa, sinopsis, géneros,
-  duración / nº de temporadas, nota de TMDB, **reparto** y **dónde verlo**
-  (`/watch/providers`).
-- **Valoración personal** (1–5) y **fecha de visto**; fila *"Tus joyas"* en
-  Inicio con lo que has puntuado 4★ o más.
-- **Descubrimiento**: tendencias, mejor valoradas (cine y series), clásicos,
-  en cartelera y populares.
-- **Persistencia** en `localStorage` + **exportar/importar JSON** como copia
-  de seguridad y para mover datos entre dispositivos.
-- Estructura de datos **normalizada**, lista para migrar a una BBDD externa
-  (p. ej. Supabase) sin rehacer la app.
+---
 
-## Stack
+## Features
 
-Astro · isla interactiva con **Svelte 5** · TypeScript · **Tailwind CSS**
-(tokens de diseño en variables CSS) · pnpm.
+**Discover and search**
+- Home rows: trending this week, top rated movies and shows, classics, now playing, popular
+  shows.
+- Search movies and shows (`/search/multi`) and add a result to a list in one tap.
 
-## Puesta en marcha
+**Your library**
+- Create your own lists (there are no default ones); add, move and remove titles.
+- Filter a list by type and genre, sort it by date added, your rating, year, title or TMDB score.
+- Rate titles from 1 to 5 and record the date you watched them.
+
+**Title detail**
+- Full-screen backdrop, synopsis, genres, runtime or seasons, TMDB score, cast and where to
+  watch it (`/watch/providers`).
+
+**App**
+- Apple Human Interface and Liquid Glass design ([DESIGN.md](DESIGN.md)), light, dark and
+  system themes with no flash on load.
+- Horizontal menu on desktop, drawer on mobile, iPhone safe areas, installable as a PWA.
+- Optional single-user login, with a session that does not expire.
+- Data in `localStorage`, with JSON export and import (replace or merge) for backups and moving
+  between devices.
+
+The UI is in Spanish.
+
+---
+
+## Tech stack
+
+<p>
+  <img alt="Astro" src="https://img.shields.io/badge/Astro-5-BC52EE?logo=astro&logoColor=white&labelColor=0d1117" />
+  <img alt="Svelte" src="https://img.shields.io/badge/Svelte-5-FF3E00?logo=svelte&logoColor=white&labelColor=0d1117" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white&labelColor=0d1117" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white&labelColor=0d1117" />
+  <img alt="pnpm" src="https://img.shields.io/badge/pnpm-11-F69220?logo=pnpm&logoColor=white&labelColor=0d1117" />
+</p>
+
+| Layer | Technology |
+|---|---|
+| Site and build | Astro 5, static output with one client-only island |
+| UI | Svelte 5, TypeScript |
+| Styling | Tailwind CSS 3 with design tokens as CSS variables |
+| Data | TMDB API v3 (read only), browser `localStorage` |
+| Hosting | GitHub Pages, deployed by GitHub Actions |
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+  user([User]) --> app[Svelte island]
+  app --> tmdb[(TMDB API)]
+  app --> ls[(localStorage)]
+  ls --> backup[JSON backup file]
+  gha[GitHub Actions] --> pages[GitHub Pages]
+  pages --> app
+```
+
+There is no backend. The browser calls TMDB directly and keeps the user's data in
+`localStorage`, stored as normalized titles plus lists that reference them, so it can move to
+a database later without rewriting the app. Every `PUBLIC_*` variable, including the TMDB key
+and the login credentials, ships in the public bundle: use a read-only TMDB key, and treat the
+login as a closed door, not as security.
+
+---
+
+## Getting started
+
+Requires Node 22 and pnpm 11, plus a TMDB v3 API key from
+<https://www.themoviedb.org/settings/api>.
 
 ```bash
 pnpm install
-cp .env.example .env      # y pon tu PUBLIC_TMDB_API_KEY
+cp .env.example .env      # set PUBLIC_TMDB_API_KEY; PUBLIC_AUTH_* are optional
 pnpm dev
 ```
 
-Consigue una API key (v3 *auth*) en
-<https://www.themoviedb.org/settings/api>.
+| Command | Action |
+|---|---|
+| `pnpm dev` | Development server |
+| `pnpm build` | Static build into `dist/` |
+| `pnpm preview` | Serve the build |
+| `pnpm check` | Type and template checks (`astro check`) |
 
-> ⚠️ En un sitio estático la API key queda **expuesta** en el cliente. Usa una
-> clave de **solo lectura**; es lo normal con la API pública de TMDB.
+Deploy: enable **Settings > Pages > Source: GitHub Actions**, add the `TMDB_API_KEY` secret
+(and optionally `AUTH_USER` and `AUTH_PASSWORD`), and push to `main`. Environment variables,
+base path and CI: [docs/operations.md](docs/operations.md).
 
-### Login (opcional)
+---
 
-Define tu usuario y contraseña en `.env`:
+## Project structure
 
-```bash
-PUBLIC_AUTH_USER=tu_usuario
-PUBLIC_AUTH_PASSWORD=tu_contraseña
+```
+cortes-tv/
+├── src/           # Svelte components, stores and TMDB client, layout, styles
+├── public/        # Logo, PWA icons and manifest
+├── scripts/       # Icon generator and docs check
+├── docs/          # Domains, operations, workflow and decisions
+├── DESIGN.md      # Design system
+└── AGENTS.md      # Agent rules and documentation map
 ```
 
-Si ambos están vacíos, el sitio queda con **acceso abierto** (sin login). La
-sesión se guarda en `localStorage` **sin caducidad** hasta que cierres sesión.
+---
 
-> ⚠️ Igual que la API key, en un sitio estático estas credenciales viajan en el
-> bundle del cliente: sirven para *cerrar la puerta*, **no es seguridad real**.
-> Para auth de verdad haría falta un backend (p. ej. Supabase Auth).
+## Documentation
 
-### Scripts
-
-| Comando         | Acción                              |
-| --------------- | ----------------------------------- |
-| `pnpm dev`      | Servidor de desarrollo              |
-| `pnpm build`    | Build estático en `dist/`           |
-| `pnpm preview`  | Previsualiza el build               |
-| `pnpm check`    | Comprobación de tipos (astro check) |
-
-Los iconos PWA se regeneran con `node scripts/generate-icons.mjs`.
-
-## Despliegue en GitHub Pages
-
-1. Sube el repo a GitHub y activa **Settings → Pages → Source: GitHub Actions**.
-2. Añade los secretos en *Settings → Secrets and variables → Actions*:
-   - **`TMDB_API_KEY`** (obligatorio).
-   - **`AUTH_USER`** y **`AUTH_PASSWORD`** (opcionales, para el login).
-3. Cada *push* a `main` ejecuta [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml),
-   que compila y publica.
-
-El *workflow* calcula el `base` automáticamente con el nombre del repositorio
-(*project site* → `https://<usuario>.github.io/<repo>/`). Para un **dominio
-propio** o un repo `usuario.github.io`, define `BASE="/"` en las variables del
-repositorio. En local puedes forzarlo: `BASE=/ pnpm build`.
-
-## Modelo de datos (resumen)
-
-```ts
-AppData {
-  version: number
-  titles: Record<"movie:123" | "tv:456", StoredTitle>   // tabla normalizada
-  lists:  MovieList[]   // cada lista guarda itemKeys[] → relación N:M
-}
-```
-
-`titles` ↔ `lists.itemKeys` modela una *join table* (`list_items`), lo que
-facilita migrar a Supabase sin cambiar la lógica de la app.
+- [AGENTS.md](AGENTS.md): entry point, global rules and the map of where everything lives.
+- [docs/](docs/): one file per feature domain, plus code style, workflow, operations and the
+  decision log.
+- [DESIGN.md](DESIGN.md): typography, color, glass, motion and components.

@@ -1,0 +1,52 @@
+name: Standards
+
+# Blocking checks from project-standards: docs in sync with the code (scripts/check-docs.mjs)
+# and every pushed commit in the one-line Conventional Commits format (.githooks/commit-msg).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  docs:
+    name: Docs (maps, links, em dash)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check docs
+        run: node scripts/check-docs.mjs
+
+  commits:
+    name: Commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Hooks are local and can be skipped with --no-verify; this is the backstop.
+      - name: Check commit messages
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE" 2>/dev/null; then
+            range="$HEAD -1"
+          else
+            range="$BASE..$HEAD"
+          fi
+          status=0
+          for sha in $(git rev-list --no-merges $range); do
+            git log -1 --format=%B "$sha" > "$RUNNER_TEMP/msg"
+            sh .githooks/commit-msg "$RUNNER_TEMP/msg" || { echo "  in $sha"; status=1; }
+          done
+          exit $status

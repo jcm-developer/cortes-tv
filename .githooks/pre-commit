@@ -1,0 +1,11 @@
+#!/bin/sh
+# Runs the documentation check before every commit, so a stale map or a broken link never
+# lands. Skipped with a warning when Node is not installed; CI runs it anyway.
+
+root=$(git rev-parse --show-toplevel)
+[ -f "$root/scripts/check-docs.mjs" ] || exit 0
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: node not found, skipping check-docs (CI still runs it)" >&2
+  exit 0
+fi
+node "$root/scripts/check-docs.mjs"
