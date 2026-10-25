@@ -32,7 +32,18 @@
       | 'menu'
       | 'sun'
       | 'moon'
-      | 'logout';
+      | 'logout'
+      | 'bookmark'
+      | 'bookmark-fill'
+      | 'eye'
+      | 'check-circle'
+      | 'check-circle-fill'
+      | 'library'
+      | 'library-fill'
+      | 'search-bold'
+      | 'sparkles'
+      | 'cloud'
+      | 'refresh';
     size?: number;
   }
   let { name, size = 24 }: Props = $props();
@@ -117,5 +128,36 @@
     <path d="M20 13.5A8 8 0 1 1 10.5 4a6.3 6.3 0 0 0 9.5 9.5z" />
   {:else if name === 'logout'}
     <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 12h10M16 8l4 4-4 4" />
+  {:else if name === 'bookmark'}
+    <path d="M6.5 3.5h11v17L12 16.5l-5.5 4z" />
+  {:else if name === 'bookmark-fill'}
+    <path d="M6.5 3.5h11v17L12 16.5l-5.5 4z" fill="currentColor" />
+  {:else if name === 'eye'}
+    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+    <circle cx="12" cy="12" r="3" />
+  {:else if name === 'check-circle'}
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8 12.3 2.7 2.7L16 9.5" />
+  {:else if name === 'check-circle-fill'}
+    <circle cx="12" cy="12" r="9.5" fill="currentColor" stroke="none" />
+    <path d="m8 12.3 2.7 2.7L16 9.5" stroke="white" stroke-width="2.2" />
+  {:else if name === 'library'}
+    <rect x="3.5" y="4" width="4" height="16" rx="1" />
+    <rect x="9.5" y="4" width="4" height="16" rx="1" />
+    <path d="m16 5.2 3.8-1 3 15.6-3.8 1z" transform="translate(-1.6 0)" />
+  {:else if name === 'library-fill'}
+    <rect x="3.5" y="4" width="4" height="16" rx="1" fill="currentColor" />
+    <rect x="9.5" y="4" width="4" height="16" rx="1" fill="currentColor" />
+    <path d="m16 5.2 3.8-1 3 15.6-3.8 1z" transform="translate(-1.6 0)" fill="currentColor" />
+  {:else if name === 'search-bold'}
+    <circle cx="11" cy="11" r="7" stroke-width="2.6" />
+    <path d="m20 20-3.2-3.2" stroke-width="2.6" />
+  {:else if name === 'sparkles'}
+    <path d="M12 3.5 13.6 8.4 18.5 10 13.6 11.6 12 16.5 10.4 11.6 5.5 10 10.4 8.4z" />
+    <path d="M18.5 15.5 19.2 17.3 21 18 19.2 18.7 18.5 20.5 17.8 18.7 16 18 17.8 17.3z" />
+  {:else if name === 'cloud'}
+    <path d="M7 18.5h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.5 9.5 4.5 4.5 0 0 0 7 18.5z" />
+  {:else if name === 'refresh'}
+    <path d="M20 11a8 8 0 0 0-14.5-4.5M4 4v3h3M4 13a8 8 0 0 0 14.5 4.5M20 20v-3h-3" />
   {/if}
 </svg>

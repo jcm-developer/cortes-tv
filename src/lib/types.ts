@@ -1,9 +1,9 @@
 /**
  * Domain types.
  *
- * The persisted shape is ready for an external database (for example Supabase): `titles` is a
- * normalized table and `lists[].itemKeys` is the many-to-many join table between lists and
- * titles. See `docs/decisions.md`, D3.
+ * The persisted shape maps one to one to a database table (for example Supabase
+ * `user_titles`): `titles` holds one row per title, keyed by `mediaType:id`. See
+ * `docs/decisions.md`, D6.
  */
 
 /** The two kinds of title TMDB serves that the app handles. */
@@ -22,7 +22,10 @@ export interface MediaSummary {
   overview?: string;
 }
 
-/** A title as stored locally: a snapshot of its summary plus the user's own data. */
+/** Where a title sits in the library: still to watch, or already watched. */
+export type TitleStatus = 'pending' | 'watched';
+
+/** A title as stored in the library: a snapshot of its summary plus the user's own data. */
 export interface StoredTitle {
   /** Stable unique key: `${mediaType}:${id}`. */
   key: string;
@@ -34,34 +37,21 @@ export interface StoredTitle {
   year: string | null;
   voteAverage: number | null;
   genreIds: number[];
+  status: TitleStatus;
   /** When it was first stored (ISO 8601). */
   addedAt: string;
-  /** Personal rating from 1 to 5, or null when unrated. */
+  /** Last change to any field (ISO 8601); orders sync conflicts. */
+  updatedAt: string;
+  /** Personal rating from 1 to 5, or null when unrated. Only watched titles are rated. */
   rating: number | null;
-  /** Watched date (YYYY-MM-DD), or null. */
+  /** Watched date (YYYY-MM-DD), or null. Only watched titles have one. */
   watchedAt: string | null;
-}
-
-/**
- * A user list.
- *
- * `predefined` lists cannot be renamed or deleted, but `normalize` in `store.ts` sets it to
- * false on every list, so none exist today.
- */
-export interface MovieList {
-  id: string;
-  name: string;
-  predefined: boolean;
-  createdAt: string;
-  /** Title keys in order, most recently added first. */
-  itemKeys: string[];
 }
 
 /** The whole persisted document; `version` allows schema migrations. */
 export interface AppData {
   version: number;
   titles: Record<string, StoredTitle>;
-  lists: MovieList[];
 }
 
 // --- Detail (immersive view) ------------------------------------------------

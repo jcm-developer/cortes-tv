@@ -50,12 +50,31 @@ export function formatDate(iso: string | null): string | null {
 }
 
 /**
- * Returns today's date as YYYY-MM-DD, the value format of date inputs.
+ * Returns today's local date as YYYY-MM-DD, the value format of date inputs.
  *
- * Uses UTC, so near midnight it can differ from the local date.
- *
- * @return Today's date.
+ * @return Today's date in the device time zone.
  */
 export function todayDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/**
+ * Formats a YYYY-MM-DD date as a short Spanish date ("5 mar 2024").
+ *
+ * Parsed as a local date, so the day never shifts with the time zone.
+ *
+ * @param day - The date as YYYY-MM-DD.
+ * @return The formatted date, or null when it is missing or invalid.
+ */
+export function formatDay(day: string | null): string | null {
+  if (!day) return null;
+  const [y, m, d] = day.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d).toLocaleDateString('es-ES', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 }

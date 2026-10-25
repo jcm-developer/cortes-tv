@@ -254,6 +254,30 @@ export const classicMovies = (signal?: AbortSignal) =>
 export const nowPlaying = (signal?: AbortSignal) =>
   fetchList('/movie/now_playing', 'movie', { page: 1, region: REGION }, signal);
 
+/**
+ * Returns the titles TMDB recommends for a movie or TV show (`/{type}/{id}/recommendations`).
+ *
+ * @param mediaType - The media type of the source title.
+ * @param id - The TMDB id of the source title.
+ * @param signal - Aborts the request.
+ * @return The first page of recommended titles that have a poster.
+ */
+export async function recommendationsFor(
+  mediaType: MediaType,
+  id: number,
+  signal?: AbortSignal,
+): Promise<MediaSummary[]> {
+  const data = await tmdbFetch<{ results: RawMedia[] }>(
+    `/${mediaType}/${id}/recommendations`,
+    { page: 1 },
+    signal,
+  );
+  // Results carry their own media_type; fall back to the source type when one is missing.
+  return (data.results ?? [])
+    .map((r) => mapSummary(r, r.media_type === 'movie' || r.media_type === 'tv' ? undefined : mediaType))
+    .filter((m): m is MediaSummary => m !== null && !!m.posterPath);
+}
+
 interface RawDetail extends RawMedia {
   genres?: { id: number; name: string }[];
   runtime?: number;

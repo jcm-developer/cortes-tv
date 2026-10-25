@@ -4,17 +4,19 @@
    * Renders a modal bottom sheet that closes on Escape and on backdrop press.
    *
    * @param open - Whether the sheet is shown.
-   * @param title - The sheet heading.
+   * @param title - The sheet heading, also its accessible name.
+   * @param hideTitle - Whether the heading is left out because the content draws its own.
    * @param onClose - Called when the user dismisses the sheet.
    * @param children - The sheet content.
    */
   interface Props {
     open: boolean;
     title?: string;
+    hideTitle?: boolean;
     onClose: () => void;
     children: Snippet;
   }
-  let { open, title, onClose, children }: Props = $props();
+  let { open, title, hideTitle = false, onClose, children }: Props = $props();
 
   function onKey(e: KeyboardEvent) {
     if (e.key === 'Escape') onClose();
@@ -41,7 +43,7 @@
       onclick={(e) => e.stopPropagation()}
     >
       <div class="sm:hidden mx-auto mt-1 mb-3 h-1.5 w-10 rounded-full bg-black/15 dark:bg-white/20" aria-hidden="true"></div>
-      {#if title}
+      {#if title && !hideTitle}
         <h2 class="text-2xl font-semibold tracking-tight mb-4 mt-1">{title}</h2>
       {/if}
       {@render children()}

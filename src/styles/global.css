@@ -149,6 +149,46 @@
   .chip.is-active {
     @apply bg-accent/10 text-accent border-accent/20;
   }
+
+  /* Bottom tab bar (mobile chrome): a glass pill with a sliding selection */
+  .glass-tabbar {
+    @apply relative grid grid-cols-3 p-1.5 rounded-full
+           bg-white/60 dark:bg-neutral-900/55
+           backdrop-blur-md backdrop-saturate-150
+           border border-white/60 dark:border-white/10
+           shadow-sheet;
+  }
+  .glass-tabbar__indicator {
+    @apply absolute top-1.5 bottom-1.5 left-1.5 rounded-full
+           bg-black/[0.06] dark:bg-white/[0.12]
+           transition-transform duration-500 ease-apple;
+    width: calc((100% - 0.75rem) / 3);
+  }
+  .glass-tabbar__tab {
+    @apply relative z-10 flex flex-col items-center justify-center gap-0.5 min-h-[3.25rem] rounded-full
+           text-[11px] font-medium text-muted transition-colors duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50;
+  }
+  .glass-tabbar__tab[aria-current='page'] {
+    @apply text-accent font-semibold;
+  }
+
+  /* Segmented control (content layer: flat fill, no glass) */
+  .segmented {
+    @apply relative grid auto-cols-fr grid-flow-col p-1 rounded-xl bg-black/[0.05] dark:bg-white/[0.08];
+  }
+  .segmented > button {
+    @apply relative z-10 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 rounded-lg
+           text-sm font-medium text-muted transition-colors duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50;
+  }
+  .segmented > button[aria-pressed='true'] {
+    @apply text-content font-semibold;
+  }
+  .segmented__thumb {
+    @apply absolute top-1 bottom-1 left-1 rounded-lg bg-white dark:bg-neutral-700 shadow-subtle
+           transition-transform duration-300 ease-apple;
+  }
 }
 
 @layer utilities {
@@ -192,6 +232,10 @@
   .top-safe {
     top: calc(env(safe-area-inset-top, 0px) + 1rem);
   }
+  /* Bottom offset of floating chrome above the home indicator */
+  .bottom-safe {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+  }
 }
 
 /* Skeleton de carga */
@@ -211,6 +255,38 @@
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
+  }
+}
+
+/* Glass fallbacks for the chrome layer (liquid-glass skill) */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-bar,
+  .glass-tabbar {
+    background: hsl(var(--surface));
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+@media (prefers-contrast: more) {
+  .glass,
+  .glass-bar,
+  .glass-tabbar {
+    background: hsl(var(--surface));
+    outline: 2px solid currentColor;
+    box-shadow: none;
+  }
+}
+@media (forced-colors: active) {
+  .glass,
+  .glass-bar,
+  .glass-tabbar {
+    background: Canvas;
+    color: CanvasText;
+    outline: 1px solid CanvasText;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none;
   }
 }
 

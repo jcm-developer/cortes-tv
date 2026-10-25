@@ -3,7 +3,6 @@
   import PosterCard from './PosterCard.svelte';
   import { TmdbError } from '../lib/tmdb';
   import type { MediaSummary } from '../lib/types';
-  import { openDetail, openAddSheet } from '../lib/ui';
 
   /**
    * Loads one TMDB discovery row and shows it as a carousel of posters.
@@ -36,10 +35,6 @@
       .finally(() => (loading = false));
     return () => controller.abort();
   });
-
-  function open(item: MediaSummary) {
-    openDetail({ mediaType: item.mediaType, id: item.id, preview: item });
-  }
 </script>
 
 {#if loading}
@@ -53,7 +48,7 @@
 {:else if items.length > 0}
   <Carousel {title} {subtitle}>
     {#each items as item (item.mediaType + item.id)}
-      <PosterCard {item} onOpen={open} onAdd={openAddSheet} />
+      <PosterCard {item} />
     {/each}
   </Carousel>
 {/if}

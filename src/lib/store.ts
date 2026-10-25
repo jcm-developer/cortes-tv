@@ -1,14 +1,20 @@
 /**
- * App data: the user's lists and titles, persisted in `localStorage`.
+ * Library data: the titles the user tracks, each pending or watched, persisted in
+ * `localStorage`.
  *
- * Every mutation goes through the functions here, which keep titles and lists consistent and
- * return a new `AppData` object so subscribers update. See `docs/domains/library.md`.
+ * Every mutation goes through the functions here, which keep the invariants (only watched
+ * titles carry a rating and a watched date) and return a new `AppData` object so subscribers
+ * update. See `docs/domains/library.md`.
  */
 import { writable, derived, get } from 'svelte/store';
-import type { AppData, MovieList, StoredTitle, MediaSummary } from './types';
+import type { AppData, MediaSummary, MediaType, StoredTitle, TitleStatus } from './types';
+import { todayDate } from './format';
 
 const STORAGE_KEY = 'cortes-tv:data';
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
+
+/** List names that mark a v1 list as "already watched" during the migration. */
+const WATCHED_LIST_NAME = /\b(vist[oa]s?|watched|seen)\b/i;
 
 /** Returns the current time in ISO 8601. */
 function nowISO(): string {
@@ -20,54 +26,120 @@ function keyFor(mediaType: string, id: number): string {
   return `${mediaType}:${id}`;
 }
 
-/**
- * Returns a new unique id for a list.
- *
- * @return A UUID, or a time and random based id where `crypto.randomUUID` is missing.
- */
-function makeId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID();
-  }
-  return `list_${Date.now().toString(36)}_${Math.floor(Math.random() * 1e6).toString(36)}`;
-}
-
-/** Returns empty data; there are no default lists, the user creates every list. */
+/** Returns empty data. */
 function defaultData(): AppData {
-  return { version: SCHEMA_VERSION, titles: {}, lists: [] };
+  return { version: SCHEMA_VERSION, titles: {} };
+}
+
+// --- Validation and migration -------------------------------------------------
+
+/** Returns the value when it is a string, otherwise null. */
+function str(v: unknown): string | null {
+  return typeof v === 'string' && v !== '' ? v : null;
+}
+
+/** Returns the value when it is a finite number, otherwise null. */
+function num(v: unknown): number | null {
+  return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
 /**
- * Validates and cleans data read from storage or an import.
+ * Validates one stored title from storage, an import or the database.
  *
- * Drops malformed lists and item keys that point to missing titles, and marks every list as
- * user-owned (`predefined: false`).
- *
- * @param data - The parsed data, possibly partial or invalid.
- * @return Clean data at the current schema version; empty data when the input is not an object.
+ * @param raw - The untrusted title object.
+ * @param fallbackStatus - The status to use when the object has none (v1 data).
+ * @return The clean title, or null when its identity (media type and id) is invalid.
  */
-function normalize(data: Partial<AppData> | null | undefined): AppData {
-  if (!data || typeof data !== 'object') return defaultData();
+export function cleanTitle(raw: unknown, fallbackStatus: TitleStatus = 'pending'): StoredTitle | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const mediaType = r.mediaType === 'movie' || r.mediaType === 'tv' ? (r.mediaType as MediaType) : null;
+  const id = num(r.id);
+  if (!mediaType || id === null || !Number.isInteger(id) || id <= 0) return null;
 
+  const status: TitleStatus =
+    r.status === 'pending' || r.status === 'watched' ? r.status : fallbackStatus;
+  const rating = num(r.rating);
+  const watchedAt = str(r.watchedAt);
+  const addedAt = str(r.addedAt) ?? nowISO();
+  const watched = status === 'watched';
+
+  return {
+    key: keyFor(mediaType, id),
+    id,
+    mediaType,
+    title: str(r.title) ?? 'Sin título',
+    posterPath: str(r.posterPath),
+    backdropPath: str(r.backdropPath),
+    year: str(r.year),
+    voteAverage: num(r.voteAverage),
+    genreIds: Array.isArray(r.genreIds) ? r.genreIds.filter((g): g is number => Number.isInteger(g)) : [],
+    status,
+    addedAt,
+    updatedAt: str(r.updatedAt) ?? addedAt,
+    rating: watched && rating !== null && rating >= 1 && rating <= 5 ? Math.round(rating) : null,
+    watchedAt: watched && watchedAt && /^\d{4}-\d{2}-\d{2}$/.test(watchedAt) ? watchedAt : null,
+  };
+}
+
+/**
+ * Migrates a v1 document (user lists joined to titles) to the v2 statuses.
+ *
+ * A title becomes watched when it has a rating or a watched date, or when a list whose name
+ * says "watched" (`WATCHED_LIST_NAME`) holds it; every other listed title becomes pending.
+ * Titles that no list holds were orphans in v1 and are dropped.
+ *
+ * @param data - The v1 document, untrusted.
+ * @return The titles at v2, by key.
+ */
+function migrateV1(data: Record<string, unknown>): Record<string, StoredTitle> {
   const titles = (data.titles && typeof data.titles === 'object' ? data.titles : {}) as Record<
     string,
-    StoredTitle
+    Record<string, unknown>
   >;
-  const incomingLists = Array.isArray(data.lists) ? data.lists : [];
+  const lists = Array.isArray(data.lists) ? (data.lists as Record<string, unknown>[]) : [];
 
-  const lists: MovieList[] = [];
-  for (const l of incomingLists) {
-    if (!l || typeof l.id !== 'string' || typeof l.name !== 'string') continue;
-    lists.push({
-      id: l.id,
-      name: l.name,
-      predefined: false,
-      createdAt: l.createdAt ?? nowISO(),
-      itemKeys: Array.isArray(l.itemKeys) ? l.itemKeys.filter((k) => titles[k]) : [],
-    });
+  const listed = new Set<string>();
+  const inWatchedList = new Set<string>();
+  for (const l of lists) {
+    if (!l || !Array.isArray(l.itemKeys)) continue;
+    const watchedList = typeof l.name === 'string' && WATCHED_LIST_NAME.test(l.name);
+    for (const k of l.itemKeys) {
+      if (typeof k !== 'string') continue;
+      listed.add(k);
+      if (watchedList) inWatchedList.add(k);
+    }
   }
 
-  return { version: SCHEMA_VERSION, titles, lists };
+  const out: Record<string, StoredTitle> = {};
+  for (const [k, raw] of Object.entries(titles)) {
+    if (!listed.has(k) || !raw || typeof raw !== 'object') continue;
+    const watched = raw.rating != null || raw.watchedAt != null || inWatchedList.has(k);
+    const t = cleanTitle({ ...raw, status: watched ? 'watched' : 'pending' });
+    if (t) out[t.key] = t;
+  }
+  return out;
+}
+
+/**
+ * Validates and cleans data read from storage or an import, migrating older versions.
+ *
+ * @param data - The parsed data, possibly partial, invalid or from schema v1.
+ * @return Clean data at the current schema version; empty data when the input is not an object.
+ */
+export function normalize(data: unknown): AppData {
+  if (!data || typeof data !== 'object') return defaultData();
+  const d = data as Record<string, unknown>;
+
+  if (Array.isArray(d.lists)) return { version: SCHEMA_VERSION, titles: migrateV1(d) };
+
+  const titles: Record<string, StoredTitle> = {};
+  const raw = d.titles && typeof d.titles === 'object' ? (d.titles as Record<string, unknown>) : {};
+  for (const value of Object.values(raw)) {
+    const t = cleanTitle(value);
+    if (t) titles[t.key] = t;
+  }
+  return { version: SCHEMA_VERSION, titles };
 }
 
 /**
@@ -93,43 +165,43 @@ export const appData = writable<AppData>(load());
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
 appData.subscribe((data) => {
   if (typeof localStorage === 'undefined') return;
-  // debounce ligero para no escribir en cada microcambio
+  // Debounced so a burst of changes writes once.
   if (persistTimer) clearTimeout(persistTimer);
   persistTimer = setTimeout(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {
-      /* cuota llena u otro error: se ignora silenciosamente */
+      /* Quota full or storage blocked: the in-memory data stays usable. */
     }
   }, 150);
 });
 
 // --- Derived stores ---------------------------------------------------------
-/** The user's lists, in creation order. */
-export const lists = derived(appData, ($d) => $d.lists);
+/** Pending titles, most recently added first. */
+export const pendingTitles = derived(appData, ($d) =>
+  Object.values($d.titles)
+    .filter((t) => t.status === 'pending')
+    .sort((a, b) => (a.addedAt < b.addedAt ? 1 : -1)),
+);
 
-/** The 20 most recently added titles, newest first. */
-export const recentlyAdded = derived(appData, ($d) => {
-  return Object.values($d.titles)
-    .slice()
-    .sort((a, b) => (a.addedAt < b.addedAt ? 1 : -1))
-    .slice(0, 20);
-});
+/** Watched titles, most recently watched first (then most recently changed). */
+export const watchedTitles = derived(appData, ($d) =>
+  Object.values($d.titles)
+    .filter((t) => t.status === 'watched')
+    .sort(
+      (a, b) =>
+        (b.watchedAt ?? '').localeCompare(a.watchedAt ?? '') ||
+        b.updatedAt.localeCompare(a.updatedAt),
+    ),
+);
 
-/** The number of titles in each list, by list id. */
-export const listCounts = derived(appData, ($d) => {
-  const m: Record<string, number> = {};
-  for (const l of $d.lists) m[l.id] = l.itemKeys.length;
-  return m;
-});
-
-// --- Operations -------------------------------------------------------------
+// --- Reads --------------------------------------------------------------------
 
 /**
  * Returns a stored title.
  *
  * @param key - The title key, `mediaType:id`.
- * @return The stored title, or undefined when no list holds it.
+ * @return The stored title, or undefined when it is not in the library.
  */
 export function getTitle(key: string): StoredTitle | undefined {
   return get(appData).titles[key];
@@ -146,189 +218,165 @@ export function summaryKey(item: { mediaType: string; id: number }): string {
 }
 
 /**
- * Returns the lists that hold a title.
+ * Returns the TMDB summary fields of a stored title.
  *
- * @param key - The title key, `mediaType:id`.
- * @return The ids of those lists, in list order.
+ * @param t - The stored title.
+ * @return The summary, as the catalog components expect it.
  */
-export function listsContaining(key: string): string[] {
-  return get(appData)
-    .lists.filter((l) => l.itemKeys.includes(key))
-    .map((l) => l.id);
+export function toSummary(t: StoredTitle): MediaSummary {
+  return {
+    id: t.id,
+    mediaType: t.mediaType,
+    title: t.title,
+    posterPath: t.posterPath,
+    backdropPath: t.backdropPath,
+    year: t.year,
+    voteAverage: t.voteAverage,
+    genreIds: t.genreIds,
+  };
+}
+
+// --- Mutations ----------------------------------------------------------------
+
+/** Listeners told which keys a local mutation changed (the sync layer uses it). */
+const changeListeners = new Set<(keys: string[]) => void>();
+
+/**
+ * Registers a listener for local changes.
+ *
+ * @param fn - Called with the changed keys after every mutation made through this module.
+ * @return A function that removes the listener.
+ */
+export function onLocalChange(fn: (keys: string[]) => void): () => void {
+  changeListeners.add(fn);
+  return () => changeListeners.delete(fn);
 }
 
 /**
- * Adds a title to the top of a list, storing its snapshot when it is new.
+ * Applies a change to the titles and notifies the change listeners.
  *
- * Does nothing to the list when it already holds the title.
- *
- * @param summary - The title, as returned by TMDB.
- * @param listId - The target list id.
+ * @param keys - The keys the change touches.
+ * @param fn - Mutates the copy of the titles it receives.
  */
-export function addToList(summary: MediaSummary, listId: string): void {
+function mutate(keys: string[], fn: (titles: Record<string, StoredTitle>) => void): void {
+  appData.update((d) => {
+    const titles = { ...d.titles };
+    fn(titles);
+    return { ...d, titles };
+  });
+  for (const l of changeListeners) l(keys);
+}
+
+/**
+ * Builds a new stored title from a TMDB summary.
+ *
+ * @param s - The summary.
+ * @param status - The initial status.
+ * @return The title, with no rating and no watched date.
+ */
+function fromSummary(s: MediaSummary, status: TitleStatus): StoredTitle {
+  const now = nowISO();
+  return {
+    key: keyFor(s.mediaType, s.id),
+    id: s.id,
+    mediaType: s.mediaType,
+    title: s.title,
+    posterPath: s.posterPath,
+    backdropPath: s.backdropPath,
+    year: s.year,
+    voteAverage: s.voteAverage,
+    genreIds: s.genreIds,
+    status,
+    addedAt: now,
+    updatedAt: now,
+    rating: null,
+    watchedAt: null,
+  };
+}
+
+/**
+ * Puts a title in the library with a status, adding it when it is new.
+ *
+ * Marking a title watched sets today as its watched date when it has none. Moving it back to
+ * pending clears the rating and the watched date, which only make sense for watched titles.
+ *
+ * @param summary - The title, as returned by TMDB or taken from the library.
+ * @param status - The new status.
+ */
+export function setStatus(summary: MediaSummary, status: TitleStatus): void {
   const key = keyFor(summary.mediaType, summary.id);
-  appData.update((d) => {
-    if (!d.titles[key]) {
-      const stored: StoredTitle = {
-        key,
-        id: summary.id,
-        mediaType: summary.mediaType,
-        title: summary.title,
-        posterPath: summary.posterPath,
-        backdropPath: summary.backdropPath,
-        year: summary.year,
-        voteAverage: summary.voteAverage,
-        genreIds: summary.genreIds,
-        addedAt: nowISO(),
-        rating: null,
-        watchedAt: null,
-      };
-      d.titles = { ...d.titles, [key]: stored };
-    }
-    d.lists = d.lists.map((l) =>
-      l.id === listId && !l.itemKeys.includes(key)
-        ? { ...l, itemKeys: [key, ...l.itemKeys] }
-        : l,
-    );
-    return { ...d };
+  mutate([key], (titles) => {
+    const current = titles[key] ?? fromSummary(summary, status);
+    titles[key] = {
+      ...current,
+      status,
+      rating: status === 'watched' ? current.rating : null,
+      watchedAt: status === 'watched' ? current.watchedAt ?? todayDate() : null,
+      updatedAt: nowISO(),
+    };
   });
 }
 
 /**
- * Removes a title from a list, and deletes its snapshot when no list holds it any more.
- *
- * The snapshot carries the rating and watched date, so removing a title from its last list
- * loses them.
+ * Removes a title from the library, with its rating and watched date.
  *
  * @param key - The title key, `mediaType:id`.
- * @param listId - The list id.
  */
-export function removeFromList(key: string, listId: string): void {
-  appData.update((d) => {
-    d.lists = d.lists.map((l) =>
-      l.id === listId ? { ...l, itemKeys: l.itemKeys.filter((k) => k !== key) } : l,
-    );
-    const stillUsed = d.lists.some((l) => l.itemKeys.includes(key));
-    if (!stillUsed) {
-      const { [key]: _drop, ...rest } = d.titles;
-      d.titles = rest;
-    }
-    return { ...d };
+export function removeTitle(key: string): void {
+  if (!getTitle(key)) return;
+  mutate([key], (titles) => {
+    delete titles[key];
   });
 }
 
 /**
- * Moves a title from one list to the top of another.
+ * Puts back a title removed with `removeTitle`, for an undo action.
  *
- * @param key - The title key, `mediaType:id`.
- * @param fromListId - The source list id.
- * @param toListId - The target list id; nothing happens when it equals the source.
+ * @param t - The title as it was before the removal.
  */
-export function moveToList(key: string, fromListId: string, toListId: string): void {
-  if (fromListId === toListId) return;
-  appData.update((d) => {
-    d.lists = d.lists.map((l) => {
-      if (l.id === fromListId) return { ...l, itemKeys: l.itemKeys.filter((k) => k !== key) };
-      if (l.id === toListId && !l.itemKeys.includes(key))
-        return { ...l, itemKeys: [key, ...l.itemKeys] };
-      return l;
-    });
-    return { ...d };
+export function restoreTitle(t: StoredTitle): void {
+  mutate([t.key], (titles) => {
+    titles[t.key] = { ...t, updatedAt: nowISO() };
   });
 }
 
 /**
- * Adds a title to a list, or removes it when the list already holds it.
- *
- * @param summary - The title.
- * @param listId - The list id.
- */
-export function toggleInList(summary: MediaSummary, listId: string): void {
-  const key = keyFor(summary.mediaType, summary.id);
-  if (listsContaining(key).includes(listId)) removeFromList(key, listId);
-  else addToList(summary, listId);
-}
-
-// --- Personal data ----------------------------------------------------------
-/**
- * Sets the personal rating of a stored title; does nothing when the title is not stored.
+ * Sets the personal rating of a watched title; does nothing for other titles.
  *
  * @param key - The title key, `mediaType:id`.
  * @param rating - The rating from 1 to 5, or null to clear it.
  */
 export function setRating(key: string, rating: number | null): void {
-  appData.update((d) => {
-    const t = d.titles[key];
-    if (!t) return d;
-    d.titles = { ...d.titles, [key]: { ...t, rating } };
-    return { ...d };
+  const t = getTitle(key);
+  if (!t || t.status !== 'watched') return;
+  mutate([key], (titles) => {
+    titles[key] = { ...t, rating, updatedAt: nowISO() };
   });
 }
 
 /**
- * Sets the watched date of a stored title; does nothing when the title is not stored.
+ * Sets the watched date of a watched title; does nothing for other titles.
  *
  * @param key - The title key, `mediaType:id`.
  * @param watchedAt - The date as YYYY-MM-DD, or null to clear it.
  */
 export function setWatchedAt(key: string, watchedAt: string | null): void {
-  appData.update((d) => {
-    const t = d.titles[key];
-    if (!t) return d;
-    d.titles = { ...d.titles, [key]: { ...t, watchedAt } };
-    return { ...d };
-  });
-}
-
-// --- List management --------------------------------------------------------
-/**
- * Creates an empty list at the end.
- *
- * @param name - The list name; a blank name becomes "Nueva lista".
- * @return The new list id.
- */
-export function createList(name: string): string {
-  const id = makeId();
-  appData.update((d) => {
-    d.lists = [
-      ...d.lists,
-      { id, name: name.trim() || 'Nueva lista', predefined: false, createdAt: nowISO(), itemKeys: [] },
-    ];
-    return { ...d };
-  });
-  return id;
-}
-
-/**
- * Renames a list.
- *
- * @param listId - The list id.
- * @param name - The new name; a blank name keeps the current one.
- */
-export function renameList(listId: string, name: string): void {
-  appData.update((d) => {
-    d.lists = d.lists.map((l) =>
-      l.id === listId && !l.predefined ? { ...l, name: name.trim() || l.name } : l,
-    );
-    return { ...d };
+  const t = getTitle(key);
+  if (!t || t.status !== 'watched') return;
+  mutate([key], (titles) => {
+    titles[key] = { ...t, watchedAt, updatedAt: nowISO() };
   });
 }
 
 /**
- * Deletes a list and every title snapshot that no other list holds.
+ * Replaces the whole library, for example with the data pulled from the server.
  *
- * @param listId - The list id.
+ * Does not notify the change listeners: the caller already owns the new data.
+ *
+ * @param titles - The new titles, already validated.
  */
-export function deleteList(listId: string): void {
-  appData.update((d) => {
-    const list = d.lists.find((l) => l.id === listId);
-    if (!list || list.predefined) return d;
-    d.lists = d.lists.filter((l) => l.id !== listId);
-    // Titles live only while a list holds them (docs/domains/library.md).
-    const used = new Set(d.lists.flatMap((l) => l.itemKeys));
-    d.titles = Object.fromEntries(Object.entries(d.titles).filter(([k]) => used.has(k)));
-    return { ...d };
-  });
+export function replaceTitles(titles: Record<string, StoredTitle>): void {
+  appData.set({ version: SCHEMA_VERSION, titles });
 }
 
 // --- Export / Import --------------------------------------------------------
@@ -338,9 +386,8 @@ export function exportJSON(): void {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const stamp = new Date().toISOString().slice(0, 10);
   a.href = url;
-  a.download = `cortes-tv-backup-${stamp}.json`;
+  a.download = `cortes-tv-backup-${todayDate()}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -354,43 +401,40 @@ export interface ImportResult {
 }
 
 /**
- * Imports app data from a JSON backup.
+ * Imports a JSON backup, from schema v1 (lists) or v2 (statuses).
  *
- * The data goes through `normalize` first. A merge adds the incoming titles (incoming
- * snapshots win) and joins each incoming list to an existing one by id, then by name; lists
- * with no match are appended.
+ * The data goes through `normalize` first, which migrates v1 lists to statuses. A merge keeps
+ * the most recently changed version of each title.
  *
  * @param text - The file contents.
  * @param mode - `replace` swaps the current data, `merge` combines both.
  * @return The outcome; `ok` is false only when the text is not valid JSON.
  */
-export function importJSON(text: string, mode: 'replace' | 'merge' = 'replace'): ImportResult {
+export function importJSON(text: string, mode: 'replace' | 'merge' = 'merge'): ImportResult {
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
   } catch {
     return { ok: false, message: 'El archivo no es un JSON válido.' };
   }
-  const incoming = normalize(parsed as Partial<AppData>);
+  const incoming = normalize(parsed).titles;
+  const before = Object.keys(get(appData).titles);
+  const keys = [...new Set([...before, ...Object.keys(incoming)])];
+  const count = Object.keys(incoming).length;
 
   if (mode === 'replace') {
-    appData.set(incoming);
-    return { ok: true, message: 'Datos importados (reemplazados).' };
+    mutate(keys, (titles) => {
+      for (const k of Object.keys(titles)) delete titles[k];
+      Object.assign(titles, incoming);
+    });
+    return { ok: true, message: `${count} títulos importados.` };
   }
 
-  // merge
-  appData.update((d) => {
-    const titles = { ...d.titles, ...incoming.titles };
-    const lists = d.lists.map((l) => ({ ...l, itemKeys: [...l.itemKeys] }));
-    for (const inc of incoming.lists) {
-      const target = lists.find((l) => l.id === inc.id) ?? lists.find((l) => l.name === inc.name && !l.predefined);
-      if (target) {
-        for (const k of inc.itemKeys) if (!target.itemKeys.includes(k)) target.itemKeys.push(k);
-      } else {
-        lists.push({ ...inc });
-      }
+  mutate(Object.keys(incoming), (titles) => {
+    for (const [k, t] of Object.entries(incoming)) {
+      const current = titles[k];
+      if (!current || current.updatedAt <= t.updatedAt) titles[k] = t;
     }
-    return { version: SCHEMA_VERSION, titles, lists };
   });
-  return { ok: true, message: 'Datos combinados con los actuales.' };
+  return { ok: true, message: `${count} títulos combinados con los actuales.` };
 }

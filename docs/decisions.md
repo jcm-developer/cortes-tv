@@ -31,7 +31,7 @@ Consequences: a single page and URL; the browser back button is wired by hand to
 detail view. Deep links to a title are not possible without adding routing.
 
 ## D3. Normalized data in localStorage, ready for a database (historical)
-Status: accepted
+Status: superseded by D6
 Context: data must persist without a backend, but a move to an external database (for
 example Supabase) should not require rewriting the app.
 Decision: one versioned `AppData` document in `localStorage`, with `titles` as a normalized
@@ -53,3 +53,14 @@ Decision: adopt project-standards: `AGENTS.md`, `docs/`, Google-style docblocks,
 Conventional Commits, `scripts/check-docs.mjs` in the pre-commit hook and in CI.
 Consequences: code, comments and docs are English from now on; UI copy and `DESIGN.md` stay
 Spanish.
+
+## D6. Two statuses instead of user lists (2026-10-25)
+Status: accepted
+Context: the user had 4 lists and a 1 to 5 rating that only made sense for titles already
+seen; rating needed the title in some list first, and recommendations need to know what was
+watched and how it was rated.
+Decision: drop user lists. Every stored title has `status` `pending` or `watched`; only watched
+titles carry `rating` and `watchedAt`. `AppData` v2 is a single `titles` map, one row per title,
+with `updatedAt` for merges. `normalize` migrates v1 documents and backups.
+Consequences: no custom lists or ordering. One title maps to one database row, which keeps a
+later sync simple. Old v1 backups still import.

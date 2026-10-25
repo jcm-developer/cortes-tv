@@ -308,6 +308,23 @@ Y una clase utilitaria reutilizable en tu CSS global:
 </nav>
 ```
 
+### Barra de pestañas inferior (móvil)
+
+Clase `.glass-tabbar` en `src/styles/global.css`. Píldora de vidrio fija abajo (`.bottom-safe`), tres pestañas con icono y etiqueta, y un indicador (`.glass-tabbar__indicator`) que se desliza con `ease-apple`. La pestaña activa usa el acento, icono relleno y peso semibold, de modo que no depende solo del color. Solo por debajo de `sm`; en escritorio la navegación vive en la barra superior.
+
+### Control segmentado
+
+Clase `.segmented` con un `.segmented__thumb` que se desliza bajo el botón con `aria-pressed="true"`. Es capa de contenido: relleno plano, sin vidrio.
+
+### Estados de la biblioteca
+
+| Estado | Color | Icono |
+|---|---|---|
+| Pendiente | acento (`bg-accent`) | `bookmark` / `bookmark-fill` |
+| Vista | verde de sistema (`bg-green-600`) | `check-circle` / `check-circle-fill` |
+
+El verde es un color semántico de estado (éxito), no un segundo acento: solo se usa para "Vista". Cada estado lleva siempre icono y texto además del color.
+
 ### Modal / hoja
 
 ```html
@@ -347,6 +364,7 @@ Y una clase utilitaria reutilizable en tu CSS global:
 - **`prefers-reduced-motion`** y **`prefers-color-scheme`** respetados.
 - **Texto escalable:** tamaños en `rem`; no fijes alturas que rompan con *Dynamic Type* / zoom.
 - **No depender solo del color** para transmitir estado (añade icono o texto).
+- **Vidrio con alternativas:** `.glass`, `.glass-bar` y `.glass-tabbar` pasan a superficie sólida con `prefers-reduced-transparency`, `prefers-contrast: more` y `forced-colors` (`global.css`).
 
 ---
 

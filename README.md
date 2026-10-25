@@ -6,7 +6,7 @@
 
 <p align="center">
   A personal movie and TV show tracker with an Apple Liquid Glass look, built for desktop and
-  iPhone. A static site on GitHub Pages: titles come from TMDB, your lists stay in your browser.
+  iPhone. A static site on GitHub Pages: titles come from TMDB, your library stays in your browser.
 </p>
 
 <p align="center">
@@ -23,21 +23,22 @@
 **Discover and search**
 - Home rows: trending this week, top rated movies and shows, classics, now playing, popular
   shows.
-- Search movies and shows (`/search/multi`) and add a result to a list in one tap.
+- Search movies and shows (`/search/multi`) and save a result in one tap.
 
 **Your library**
-- Create your own lists (there are no default ones); add, move and remove titles.
-- Filter a list by type and genre, sort it by date added, your rating, year, title or TMDB score.
-- Rate titles from 1 to 5 and record the date you watched them.
+- Two lists: Pending and Watched. Mark any title from its poster or its detail.
+- Rate watched titles from 1 to 5 and record the date you watched them.
+- Search, filter by type and genre, sort by date, your rating, year, title or TMDB score.
+- Undo a removal from the toast.
 
 **Title detail**
-- Full-screen backdrop, synopsis, genres, runtime or seasons, TMDB score, cast and where to
-  watch it (`/watch/providers`).
+- Full-screen backdrop, synopsis, genres, runtime or seasons, TMDB score, cast, where to
+  watch it (`/watch/providers`) and similar titles (`/recommendations`).
 
 **App**
 - Apple Human Interface and Liquid Glass design ([DESIGN.md](DESIGN.md)), light, dark and
   system themes with no flash on load.
-- Horizontal menu on desktop, drawer on mobile, iPhone safe areas, installable as a PWA.
+- Top bar on desktop, bottom tab bar on mobile, iPhone safe areas, installable as a PWA.
 - Optional single-user login, with a session that does not expire.
 - Data in `localStorage`, with JSON export and import (replace or merge) for backups and moving
   between devices.
@@ -79,8 +80,8 @@ flowchart LR
 ```
 
 There is no backend. The browser calls TMDB directly and keeps the user's data in
-`localStorage`, stored as normalized titles plus lists that reference them, so it can move to
-a database later without rewriting the app. Every `PUBLIC_*` variable, including the TMDB key
+`localStorage`, one record per title with its status (pending or watched), so it maps one to
+one to a database table. Every `PUBLIC_*` variable, including the TMDB key
 and the login credentials, ships in the public bundle: use a read-only TMDB key, and treat the
 login as a closed door, not as security.
 

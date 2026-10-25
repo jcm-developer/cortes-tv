@@ -3,13 +3,15 @@
 ## Purpose
 
 Everything that comes from TheMovieDB: the discovery rows on Home, search, the title detail
-(genres, runtime, seasons, cast, where to watch) and the genre names used by list filters.
+(genres, runtime, seasons, cast, where to watch, similar titles) and the genre names used by
+the library filters.
 TMDB is called straight from the browser with a read-only key.
 
 ## Key files
 
 - `src/lib/tmdb.ts` (`tmdbFetch`, `mapSummary`, `searchMulti`, `trending`, `fetchList` and the
-  row loaders, `getDetail`, `getGenreMap`, `img`, `ImageSize`, `TmdbError`): the client.
+  row loaders, `getDetail`, `recommendationsFor`, `getGenreMap`, `img`, `ImageSize`,
+  `TmdbError`): the client.
 - `src/lib/types.ts` (`MediaSummary`, `MediaDetail`, `CastMember`, `WatchProviders`): the app
   shapes the client maps into.
 - `src/components/Home.svelte`: the list of discovery rows (title plus loader).
@@ -34,7 +36,8 @@ TMDB is called straight from the browser with a read-only key.
    `mapSummary` and `getDetail`. Search drops people (`media_type` not movie or tv); list rows
    drop items without a poster.
 4. `getDetail` asks for `credits` and `watch/providers` in the same request and keeps the
-   first 18 cast members.
+   first 18 cast members. `Detail.svelte` loads `recommendationsFor` in parallel for its
+   "Si te gusta esto" row.
 
 ## Invariants
 

@@ -2,15 +2,15 @@
   /** Renders the root island: auth gate, navigation, active tab and overlays; owns the theme and history sync. */
   import Home from './Home.svelte';
   import Search from './Search.svelte';
-  import Lists from './Lists.svelte';
+  import Library from './Library.svelte';
   import Detail from './Detail.svelte';
   import TopNav from './TopNav.svelte';
-  import AddToListSheet from './AddToListSheet.svelte';
+  import TitleSheet from './TitleSheet.svelte';
   import Settings from './Settings.svelte';
   import Sheet from './Sheet.svelte';
   import Toast from './Toast.svelte';
   import Login from './Login.svelte';
-  import { activeTab, detailTarget, settingsOpen, theme, applyTheme } from '../lib/ui';
+  import { activeTab, settingsOpen, theme, applyTheme, onHistoryBack } from '../lib/ui';
   import { authed } from '../lib/auth';
 
   // Mantén el <html> sincronizado con el tema (incluye cambios del sistema).
@@ -24,23 +24,10 @@
     return () => mq.removeEventListener('change', onChange);
   });
 
-  // El botón "atrás" del navegador cierra el detalle.
+  // The browser back button and the iOS back gesture close the detail view.
   $effect(() => {
-    function onPop() {
-      detailTarget.set(null);
-    }
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  });
-  let pushed = false;
-  $effect(() => {
-    const open = !!$detailTarget;
-    if (open && !pushed) {
-      history.pushState({ detail: true }, '');
-      pushed = true;
-    } else if (!open && pushed) {
-      pushed = false;
-    }
+    window.addEventListener('popstate', onHistoryBack);
+    return () => window.removeEventListener('popstate', onHistoryBack);
   });
 </script>
 
@@ -49,24 +36,24 @@
 {:else}
   <TopNav />
 
-  <!-- Mismo esquema que el navbar (px fuera, max-w-5xl dentro) para que el
-       contenido tenga exactamente el mismo ancho que la barra. -->
-  <main class="px-3 sm:px-5 pt-[calc(env(safe-area-inset-top,0px)+5rem)] pb-16">
+  <!-- Same frame as the top bar (padding outside, max-w-5xl inside) so content lines up with
+       it; the bottom padding clears the mobile tab bar. -->
+  <main class="px-3 sm:px-5 pt-[calc(env(safe-area-inset-top,0px)+5rem)] pb-[calc(env(safe-area-inset-bottom,0px)+7rem)] sm:pb-16">
     <div class="mx-auto w-full max-w-5xl">
       {#if $activeTab === 'home'}
         <Home />
       {:else if $activeTab === 'search'}
         <Search />
       {:else}
-        <Lists />
+        <Library />
       {/if}
     </div>
   </main>
 
   <Detail />
-  <AddToListSheet />
+  <TitleSheet />
 
-  <Sheet open={$settingsOpen} title="Ajustes y copias de seguridad" onClose={() => settingsOpen.set(false)}>
+  <Sheet open={$settingsOpen} title="Ajustes" onClose={() => settingsOpen.set(false)}>
     <Settings />
   </Sheet>
 {/if}

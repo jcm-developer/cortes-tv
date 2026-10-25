@@ -1,6 +1,9 @@
 <script lang="ts">
-  /** Renders the Home tab: TMDB discovery rows, or a setup hint when there is no API key. */
+  /** Renders the Home tab: the user's pending titles and TMDB discovery rows, or a setup hint without an API key. */
   import DiscoverRow from './DiscoverRow.svelte';
+  import Carousel from './Carousel.svelte';
+  import PosterCard from './PosterCard.svelte';
+  import { pendingTitles, toSummary } from '../lib/store';
   import Icon from './Icon.svelte';
   import {
     hasApiKey,
@@ -12,7 +15,7 @@
     nowPlaying,
   } from '../lib/tmdb';
   import type { MediaSummary } from '../lib/types';
-  import { activeTab } from '../lib/ui';
+  import { activeTab, openLibrary } from '../lib/ui';
 
   const discover: { title: string; subtitle?: string; loader: (s?: AbortSignal) => Promise<MediaSummary[]> }[] = [
     { title: 'Tendencias esta semana', subtitle: 'vía TMDB', loader: trending },
@@ -34,6 +37,14 @@
       </p>
     </div>
   {:else}
+    {#if $pendingTitles.length > 0}
+      <Carousel title="Tus pendientes" subtitle={String($pendingTitles.length)} onSeeAll={() => openLibrary('pending')}>
+        {#each $pendingTitles.slice(0, 20) as t (t.key)}
+          <PosterCard item={toSummary(t)} />
+        {/each}
+      </Carousel>
+    {/if}
+
     {#each discover as d (d.title)}
       <DiscoverRow title={d.title} subtitle={d.subtitle} loader={d.loader} />
     {/each}

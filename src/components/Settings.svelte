@@ -1,7 +1,7 @@
 <script lang="ts">
   /** Renders the settings sheet content: theme, JSON export and import, and logout. */
   import Icon from './Icon.svelte';
-  import { exportJSON, importJSON, appData } from '../lib/store';
+  import { exportJSON, importJSON, pendingTitles, watchedTitles } from '../lib/store';
   import { showToast, theme, settingsOpen, type Theme } from '../lib/ui';
   import { authRequired, logout } from '../lib/auth';
 
@@ -13,10 +13,6 @@
   let fileInput: HTMLInputElement;
   let importMode = $state<'replace' | 'merge'>('merge');
 
-  const stats = $derived({
-    titles: Object.keys($appData.titles).length,
-    lists: $appData.lists.length,
-  });
 
   function onExport() {
     exportJSON();
@@ -46,12 +42,12 @@
   <!-- Estadísticas -->
   <div class="flex gap-3">
     <div class="flex-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] p-4">
-      <p class="text-3xl font-bold tracking-tight">{stats.titles}</p>
-      <p class="text-sm text-muted">títulos</p>
+      <p class="text-3xl font-bold tracking-tight">{$pendingTitles.length}</p>
+      <p class="text-sm text-muted">pendientes</p>
     </div>
     <div class="flex-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] p-4">
-      <p class="text-3xl font-bold tracking-tight">{stats.lists}</p>
-      <p class="text-sm text-muted">listas</p>
+      <p class="text-3xl font-bold tracking-tight">{$watchedTitles.length}</p>
+      <p class="text-sm text-muted">vistas</p>
     </div>
   </div>
 
@@ -71,8 +67,9 @@
   <div>
     <p class="text-[11px] font-medium uppercase tracking-wide text-muted mb-1.5">Copia de seguridad</p>
     <p class="text-[15px] text-muted leading-relaxed mb-3">
-      Tus listas se guardan solo en este navegador. Exporta un archivo JSON para conservarlas o
-      moverlas a otro dispositivo.
+      Tu biblioteca se guarda en este dispositivo. Exporta un archivo JSON para conservarla o
+      moverla a otro. Puedes importar copias antiguas con listas: lo valorado o fechado pasa a
+      Vistas y el resto a Pendientes.
     </p>
 
     <button class="btn-glass w-full" onclick={onExport}>
@@ -90,10 +87,6 @@
     </button>
     <input bind:this={fileInput} type="file" accept="application/json,.json" onchange={onFile} hidden />
   </div>
-
-  <p class="text-xs text-muted leading-relaxed">
-    Estructura preparada para migrar a una base de datos externa (p. ej. Supabase) sin perder datos.
-  </p>
 
   {#if authRequired()}
     <button class="btn-glass w-full mt-1" onclick={onLogout}>

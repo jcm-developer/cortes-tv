@@ -1,10 +1,9 @@
 <script lang="ts">
-  /** Renders the Search tab: debounced TMDB multi search with add-to-list buttons. */
+  /** Renders the Search tab: debounced TMDB multi search; each result opens the title sheet. */
   import PosterCard from './PosterCard.svelte';
   import Icon from './Icon.svelte';
   import { searchMulti, hasApiKey, TmdbError } from '../lib/tmdb';
   import type { MediaSummary } from '../lib/types';
-  import { openDetail, openAddSheet } from '../lib/ui';
 
   let query = $state('');
   let results = $state<MediaSummary[]>([]);
@@ -55,15 +54,12 @@
     searched = false;
     inputEl?.focus();
   }
-  function open(item: MediaSummary) {
-    openDetail({ mediaType: item.mediaType, id: item.id, preview: item });
-  }
 </script>
 
 <div class="animate-fade-in pt-3 sm:pt-6">
   <header class="mb-5">
     <h1 class="text-2xl font-bold tracking-tight">Buscar</h1>
-    <p class="mt-1.5 text-[15px] text-muted">Encuentra películas, series y documentales, y añádelos a tus listas.</p>
+    <p class="mt-1.5 text-[15px] text-muted">Encuentra películas, series y documentales, y márcalos como pendientes o vistos.</p>
   </header>
 
   <div class="glass-bar flex items-center gap-2.5 h-12 px-4 rounded-2xl text-muted">
@@ -115,7 +111,7 @@
     {:else if results.length > 0}
       <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-x-3 gap-y-5">
         {#each results as item (item.mediaType + item.id)}
-          <PosterCard {item} width={0} onOpen={open} onAdd={openAddSheet} />
+          <PosterCard {item} width={0} />
         {/each}
       </div>
     {:else if searched}

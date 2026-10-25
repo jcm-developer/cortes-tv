@@ -22,8 +22,9 @@ knowledge lives, and how to keep that knowledge current.
 
 Cortes TV is a personal movie and TV show tracker with an Apple Liquid Glass look, built for
 one user on desktop and iPhone. It is a fully static site: titles come from TheMovieDB (TMDB)
-straight from the browser, and the user's lists, ratings and watched dates live in
-`localStorage`, with a JSON export and import for backups. The UI copy is in Spanish.
+straight from the browser, and the user's library (pending and watched titles, ratings and
+watched dates) lives in `localStorage`, with a JSON export and import for backups. The UI
+copy is in Spanish.
 
 | Layer | Technology |
 |---|---|
@@ -79,7 +80,7 @@ when the area changes.
 |---|---|
 | `auth.md` | Single-user login gate, session marker in `localStorage` |
 | `catalog.md` | TMDB client, discovery rows, search, title detail data, genres |
-| `library.md` | User lists, stored titles, ratings, watched dates, persistence, backup |
+| `library.md` | Pending and watched titles, ratings, watched dates, persistence, backup |
 | `ui.md` | App shell, navigation, detail view, sheets, theme, toasts |
 
 ## 4. Keeping the docs current
