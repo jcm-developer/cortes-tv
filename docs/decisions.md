@@ -93,3 +93,15 @@ because the app is Svelte.
 Consequences: the repository now holds server functions in `convex/`, deployed by CI with a
 deploy key before the static build. Convex Auth needs JWT keys set on the deployment once.
 Without `PUBLIC_CONVEX_URL` the app still runs local only.
+
+## D9. Cloudflare Pages instead of GitHub Pages (2026-10-25)
+Status: accepted
+Context: GitHub Pages served the site under `/cortes-tv` and needs a public repository on the
+free plan. The user created a Cloudflare Pages project connected to the repository.
+Decision: Cloudflare builds and hosts the site at the root of `cortes-tv.pages.dev`.
+`scripts/build-site.mjs` deploys the Convex functions on `main` and builds the site; preview
+branches only build. `.github/workflows/deploy.yml` is removed; GitHub Actions keeps only the
+standards checks. Hosting in D1 changes; the rest of D1 (static site) stands.
+Consequences: build settings and variables live in the Cloudflare dashboard (documented in
+`docs/operations.md`). pnpm 11 is pinned in the build command, not taken from the build
+image. Response headers come from `public/_headers`.

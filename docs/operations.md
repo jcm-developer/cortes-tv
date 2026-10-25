@@ -6,17 +6,21 @@ runs outside the code itself.
 ## Environment variables
 
 All variables are read at build time through `import.meta.env` and baked into the static
-bundle. `.env.example` lists them for local development; CI sets them in
-`.github/workflows/deploy.yml`.
+bundle. `.env.example` lists them for local development; production sets them in the
+Cloudflare Pages project (Settings > Variables and Secrets).
 
 | Variable | Required | Read in | Purpose |
 |---|---|---|---|
-| `PUBLIC_TMDB_API_KEY` | Yes | `src/lib/tmdb.ts` | TMDB v3 API key. CI: secret `TMDB_API_KEY`. |
+| `PUBLIC_TMDB_API_KEY` | Yes | `src/lib/tmdb.ts` | TMDB v3 API key. |
 | `PUBLIC_TMDB_LANG` | No (`es-ES`) | `src/lib/tmdb.ts` | Language of TMDB responses. |
 | `PUBLIC_TMDB_REGION` | No (`ES`) | `src/lib/tmdb.ts` | Region for "now playing" and watch providers. |
-| `PUBLIC_CONVEX_URL` | No | `src/lib/convex.ts` | Convex deployment URL. CI: set by `convex deploy` from the secret `CONVEX_DEPLOY_KEY`. |
-| `PUBLIC_AUTH_USER` | No | `src/lib/auth.ts` | Build-time gate user, ignored with Convex. CI: secret `AUTH_USER`. |
-| `PUBLIC_AUTH_PASSWORD` | No | `src/lib/auth.ts` | Build-time gate password, ignored with Convex. CI: secret `AUTH_PASSWORD`. |
+| `PUBLIC_CONVEX_URL` | No | `src/lib/convex.ts` | Convex deployment URL. Production: injected by `convex deploy` (`scripts/build-site.mjs`). |
+| `PUBLIC_AUTH_USER` | No | `src/lib/auth.ts` | Build-time gate user, ignored with Convex. |
+| `PUBLIC_AUTH_PASSWORD` | No | `src/lib/auth.ts` | Build-time gate password, ignored with Convex. |
+| `SITE` | No | `astro.config.mjs` | Site origin, default `https://cortes-tv.pages.dev`. |
+| `BASE` | No | `astro.config.mjs` | Base path, default `/`. |
+| `CONVEX_DEPLOY_KEY` | No | `scripts/build-site.mjs` | Convex production deploy key; build only, never in the bundle. |
+| `NODE_VERSION`, `SKIP_DEPENDENCY_INSTALL` | Cloudflare | Cloudflare build image | `22` and `true` (see "Deploy"). |
 
 Convex deployment variables (set in the Convex dashboard or with `npx convex env set`, never in
 the bundle):
@@ -25,9 +29,7 @@ the bundle):
 |---|---|---|
 | `AUTH_ALLOWED_EMAIL` | `convex/auth.ts` | The only email that can create an account and sign in. |
 | `JWT_PRIVATE_KEY`, `JWKS` | Convex Auth | Signing key pair for session tokens (`npx @convex-dev/auth`). |
-| `SITE_URL` | Convex Auth | The site origin, for example `https://<user>.github.io/cortes-tv`. |
-| `SITE` | No | `astro.config.mjs` | Site origin, default `https://tu-usuario.github.io`. |
-| `BASE` | No | `astro.config.mjs` | Base path, default `/cortes-tv`; `/` for a custom domain or a user site. |
+| `SITE_URL` | Convex Auth | The site origin, `https://cortes-tv.pages.dev`. |
 
 Never commit a secret. Every `PUBLIC_*` variable ends up in the public bundle: the TMDB key
 must be a read-only v3 key; the Convex URL is public by design, because every function checks the
@@ -42,11 +44,11 @@ Optional; without it the library stays in each browser. One-time setup, from the
    `.env.local` (git-ignored) with the dev deployment and its `CONVEX_URL`.
 2. `npx @convex-dev/auth --skip-git-check` (or by hand: `npx convex env set` for `JWT_PRIVATE_KEY`,
    `JWKS`, `SITE_URL`) and `npx convex env set AUTH_ALLOWED_EMAIL <your email>`. Repeat both on
-   the production deployment (`--prod`), with `SITE_URL` set to the Pages URL.
+   the production deployment (`--prod`), with `SITE_URL` set to `https://cortes-tv.pages.dev`.
 3. Convex dashboard > the project > Settings > Deploy keys: create a production deploy key and
-   store it as the repository secret `CONVEX_DEPLOY_KEY`.
-4. Push: `deploy.yml` runs `convex deploy`, which pushes `convex/` to production and builds the
-   site with `PUBLIC_CONVEX_URL` pointing at it.
+   store it as the encrypted Cloudflare variable `CONVEX_DEPLOY_KEY` ("Deploy").
+4. Push: the Cloudflare build runs `convex deploy`, which pushes `convex/` to production and
+   builds the site with `PUBLIC_CONVEX_URL` pointing at it.
 5. Open the site, "Primera vez: crear cuenta" with the allowed email, then sign in on the other
    devices.
 
@@ -77,27 +79,37 @@ None.
 
 ## Deploy
 
-GitHub Pages, through `.github/workflows/deploy.yml`, on every push to `main` and on manual
-dispatch. It installs with `pnpm install --frozen-lockfile`, deploys the Convex functions when the
-`CONVEX_DEPLOY_KEY` secret exists (`convex deploy --cmd "pnpm run build"`, which also injects
-`PUBLIC_CONVEX_URL`), builds with `SITE` and `BASE` derived from the repository owner and name, adds `dist/.nojekyll` and publishes `dist/`. Pages
-must be set to "Source: GitHub Actions" in the repository settings.
+Cloudflare Pages, project `cortes-tv`, connected to the GitHub repository: every push to `main`
+publishes `https://cortes-tv.pages.dev`; other branches get preview URLs. Project settings:
 
-The deploy needs no cache step: `public/sw.js` serves pages network first, so the installed
-app shows a new deploy on its next open (`docs/domains/ui.md`).
+| Setting | Value |
+|---|---|
+| Framework preset | None |
+| Build command | `npx pnpm@11.2.2 install --frozen-lockfile && npx pnpm@11.2.2 run build:site` |
+| Build output directory | `dist` |
+| Variables | `NODE_VERSION` `22`, `SKIP_DEPENDENCY_INSTALL` `true`, `PUBLIC_TMDB_API_KEY`, `CONVEX_DEPLOY_KEY` (encrypted) |
 
-`pnpm-workspace.yaml` allows the `esbuild` and `sharp` build scripts (`allowBuilds`, the
-pnpm 11 format) so the frozen install succeeds in CI.
+- The build command pins pnpm 11 through `npx` instead of relying on the pnpm of the
+  Cloudflare build image; `SKIP_DEPENDENCY_INSTALL` stops the image's own install, which would
+  run with that other pnpm against the pnpm 11 lockfile.
+- `scripts/build-site.mjs` runs `convex deploy --cmd "npm run build"` on `main` when
+  `CONVEX_DEPLOY_KEY` is set; preview branches (`CF_PAGES_BRANCH`) and builds without the key
+  run `astro build` only, so they never change production functions.
+- `public/_headers`: `sw.js` is never cached by the browser, so a deploy reaches installed
+  apps on their next open; `/assets/*` is immutable (hashed names).
+- `pnpm-workspace.yaml` allows the `esbuild` and `sharp` build scripts (`allowBuilds`, the
+  pnpm 11 format) so the frozen install succeeds.
 
 ## CI
 
-- `deploy.yml`: build and deploy, described above.
-- `standards.yml`: `node scripts/check-docs.mjs` and the commit message check
-  (`.githooks/commit-msg`) over every pushed commit. Both block.
+- `standards.yml` (GitHub Actions): `node scripts/check-docs.mjs` and the commit message check
+  (`.githooks/commit-msg`) over every pushed commit. Both block. The deploy itself runs on
+  Cloudflare, not in GitHub Actions.
 
 ## Costs
 
-None: GitHub Pages and the TMDB API are free for this use. TMDB rate limits apply per key
+None: Cloudflare Pages (free plan: 500 builds a month, unlimited bandwidth) and the TMDB API
+are free for this use. TMDB rate limits apply per key
 (`TmdbError` with status 429). Convex free plan: the library is a few hundred small rows and a
 handful of function calls per session, far below the limits; it is limited by usage, not
 paused for inactivity.

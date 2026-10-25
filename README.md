@@ -6,7 +6,7 @@
 
 <p align="center">
   A personal movie and TV show tracker with an Apple Liquid Glass look, built for desktop and
-  iPhone. A static site on GitHub Pages: titles come from TMDB, your library stays in your browser.
+  iPhone. A static site on Cloudflare Pages: titles come from TMDB, your library stays in your browser.
 </p>
 
 <p align="center">
@@ -71,7 +71,7 @@ The UI is in Spanish.
 | UI | Svelte 5, TypeScript |
 | Styling | Tailwind CSS 3 with design tokens as CSS variables |
 | Data | TMDB API v3 (read only), browser `localStorage`, optional Convex (auth and live sync) |
-| Hosting | GitHub Pages, deployed by GitHub Actions |
+| Hosting | Cloudflare Pages, built from the GitHub repository |
 
 ---
 
@@ -84,7 +84,7 @@ flowchart LR
   app --> ls[(localStorage)]
   ls <-. live sync .-> cx[(Convex titles)]
   ls --> backup[JSON backup file]
-  gha[GitHub Actions] --> pages[GitHub Pages]
+  gh[GitHub push] --> pages[Cloudflare Pages]
   pages --> app
 ```
 
@@ -115,10 +115,8 @@ pnpm dev
 | `pnpm preview` | Serve the build |
 | `pnpm check` | Type and template checks (`astro check`) |
 
-Deploy: enable **Settings > Pages > Source: GitHub Actions**, add the `TMDB_API_KEY` secret
-and, for sync, the `CONVEX_DEPLOY_KEY` secret, then push to `main`. Convex setup:
-[docs/operations.md](docs/operations.md#convex). Environment variables,
-base path and CI: [docs/operations.md](docs/operations.md).
+Deploy: a Cloudflare Pages project connected to this repository builds every push to
+`main`. Build settings, variables and Convex setup: [docs/operations.md](docs/operations.md).
 
 ---
 

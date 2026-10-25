@@ -1,0 +1,9 @@
+# Cloudflare Pages response headers (docs/operations.md, "Deploy").
+
+# The service worker must be checked on every visit so a deploy reaches installed apps.
+/sw.js
+  Cache-Control: no-cache
+
+# Built assets have hashed names and never change.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

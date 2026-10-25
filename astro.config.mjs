@@ -3,13 +3,11 @@ import { defineConfig } from 'astro/config';
 import svelte from '@astrojs/svelte';
 import tailwind from '@astrojs/tailwind';
 
-// --- GitHub Pages config -----------------------------------------------------
-// Para un "project site" (https://<user>.github.io/<repo>/) define el base
-// con el nombre del repositorio. Puedes sobreescribirlo en build con:
-//   SITE=https://tu-usuario.github.io  BASE=/cortes-tv  pnpm build
-// Para un dominio propio o "user site", deja BASE = '/'.
-const SITE = process.env.SITE ?? 'https://tu-usuario.github.io';
-const BASE = process.env.BASE ?? '/cortes-tv';
+// --- Site and base path ------------------------------------------------------
+// Cloudflare Pages serves the site at the root of cortes-tv.pages.dev. Override with SITE and
+// BASE for another host or a sub-path (docs/operations.md, "Deploy").
+const SITE = process.env.SITE ?? 'https://cortes-tv.pages.dev';
+const BASE = process.env.BASE ?? '/';
 
 // https://astro.build/config
 export default defineConfig({

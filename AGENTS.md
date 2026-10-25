@@ -34,20 +34,20 @@ The UI copy is in Spanish.
 | Styling | Tailwind CSS 3, design tokens as CSS variables (`DESIGN.md`) |
 | Data | TMDB API v3 (read only), `localStorage`, optional Convex (auth and live sync) |
 | Package manager | pnpm 11 |
-| Hosting | GitHub Pages, deployed by GitHub Actions |
+| Hosting | Cloudflare Pages, built from the GitHub repository on every push |
 
 <!-- check-docs: map -->
 ```
 cortes-tv/
 ├── .agents/skills/              # Vendored agent skills (liquid-glass), pinned in skills-lock.json
 ├── .github/
-│   ├── workflows/deploy.yml     # Build and deploy to GitHub Pages on push to main
 │   └── workflows/standards.yml  # Docs check and commit message check
 ├── .githooks/                   # commit-msg and pre-commit hooks
 ├── convex/                      # Convex functions: schema, auth (Convex Auth), titles; _generated is codegen
 ├── docs/                        # Code style, workflow, operations, decisions, domains
-├── public/                      # Static assets: logo, PWA icons, web manifest, service worker (sw.js)
+├── public/                      # Static assets: logo, PWA icons, manifest, service worker, _headers
 ├── scripts/
+│   ├── build-site.mjs           # Cloudflare build: Convex deploy on main, then astro build
 │   ├── check-docs.mjs           # Docs vs code check (pre-commit and CI)
 │   └── generate-icons.mjs       # Renders public/icons/icon.svg to the PWA PNG icons (headless Chrome)
 ├── src/
@@ -57,7 +57,7 @@ cortes-tv/
 │   ├── pages/index.astro        # The only page; mounts App client-only
 │   └── styles/global.css        # Design tokens and glass utilities
 ├── DESIGN.md                    # Design system (Spanish): type, color, depth, motion
-├── astro.config.mjs             # Site and base for GitHub Pages, integrations
+├── astro.config.mjs             # Site and base path, integrations
 └── tailwind.config.js           # Tailwind theme mapped to the CSS tokens
 ```
 
