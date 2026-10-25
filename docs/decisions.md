@@ -107,7 +107,7 @@ Consequences: build settings and variables live in the Cloudflare dashboard (doc
 image. Response headers come from `public/_headers`.
 
 ## D10. Liquid Glass chrome from the vendored skill, one layout for every screen (2026-10-25)
-Status: accepted
+Status: accepted; the navigation part is superseded by D11
 Context: the first design used a hand-made frosted recipe (24px blur, glass on content) and
 two navigations (a desktop top bar and a mobile tab bar), which drifted apart and caused most
 of the iPhone bugs: pages scrolling behind overlays, stuck hover states, misplaced arrows and
@@ -121,3 +121,15 @@ adds never runs on touch devices.
 Consequences: glass appears only on the tab bar, floating buttons, sheets, menus and toasts,
 which keeps iOS under the three-surface budget. Refraction is not available on desktop
 Chromium; adding the script later only needs `data-refract` on the bars.
+
+## D11. Top bar on every screen, tab bar on phones only (2026-10-25)
+Status: accepted
+Context: with one bottom tab bar and a settings button per tab header (D10), desktop looked
+like a stretched phone and the content column was too wide.
+Decision: one `TopBar.svelte` on every screen size: name, theme toggle and settings, plus the
+tabs from 768px. Below 768px the bottom tab bar stays, at the same width as the top bar
+(`--chrome-w`). Both bars switch tabs through `selectTab`, so they cannot drift apart as the
+first design's two navigations did. Content is capped at `max-w-5xl`. Sheets attach to the
+bottom edge on phones and stay centred on desktop.
+Consequences: two navigation surfaces to keep in step on phones; the glass budget there is the
+top bar, one page control and the tab bar. The settings button left the tab headers.
