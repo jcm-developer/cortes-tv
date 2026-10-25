@@ -1,7 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-    <stop offset="0" stop-color="#0a84ff"/><stop offset="1" stop-color="#5e5ce6"/>
-  </linearGradient></defs>
-  <rect width="512" height="512" rx="115" fill="url(#g)"/>
-  <path d="M198 150 L380 256 L198 362 Z" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Cortes TV app icon: source of every PNG icon (scripts/generate-icons.mjs).
+       Full bleed: iOS and maskable icons round the corners themselves. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2c2c2e"/>
+      <stop offset="0.55" stop-color="#111113"/>
+      <stop offset="1" stop-color="#050506"/>
+    </linearGradient>
+    <linearGradient id="ink" gradientUnits="userSpaceOnUse" x1="0" y1="360" x2="0" y2="662">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e3e3e8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g transform="translate(4 0)">
+    <!-- Monogram: a heavy "C" ring, open to the right -->
+    <path d="M415.6 426.4 A121 121 0 1 0 415.6 597.6" fill="none" stroke="url(#ink)" stroke-width="58"/>
+    <!-- "t" -->
+    <path d="M545 360 V580 Q545 614 590 614 H622" fill="none" stroke="url(#ink)" stroke-width="52"/>
+    <path d="M492 446 H620" fill="none" stroke="url(#ink)" stroke-width="52"/>
+    <!-- "v" -->
+    <path d="M658 420 H712 L747 544 L782 420 H836 L774 640 H720 Z" fill="url(#ink)"/>
+  </g>
 </svg>

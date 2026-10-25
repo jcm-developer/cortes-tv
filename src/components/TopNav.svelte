@@ -4,6 +4,7 @@
    * settings on mobile) and, on mobile, a bottom glass tab bar.
    */
   import Icon from './Icon.svelte';
+  import Logo from './Logo.svelte';
   import { activeTab, settingsOpen, theme, toggleTheme, type Tab } from '../lib/ui';
 
   type IconName = 'home' | 'home-fill' | 'search' | 'search-bold' | 'library' | 'library-fill';
@@ -34,8 +35,8 @@
 
 <nav class="fixed top-safe inset-x-0 z-50 px-3 sm:px-5" aria-label="Navegación principal">
   <div class="mx-auto max-w-5xl glass-bar rounded-2xl flex items-center justify-between h-14 pl-4 pr-2 sm:pr-3">
-    <button class="text-[17px] font-bold tracking-tight active:scale-95 transition-transform" onclick={() => go('home')}>
-      Cortes&nbsp;TV
+    <button class="flex items-center h-11 active:scale-95 transition-transform" onclick={() => go('home')} aria-label="Cortes TV, inicio">
+      <Logo height={20} />
     </button>
 
     <div class="hidden sm:flex items-center gap-1">

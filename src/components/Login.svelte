@@ -2,6 +2,7 @@
   /** Renders the login form shown while `authed` is false: Convex email and password (sign in or first-time sign up), or the build-time gate. */
   import { cloudLogin, login } from '../lib/auth';
   import { cloudEnabled } from '../lib/convex';
+  import Logo from './Logo.svelte';
 
   const cloud = cloudEnabled();
 
@@ -38,7 +39,7 @@
 
 <div class="min-h-dvh grid place-items-center px-4 pb-16 pt-[calc(env(safe-area-inset-top,0px)+1rem)]">
   <form class="glass w-full max-w-sm p-7 sm:p-8 animate-scale-in" onsubmit={onSubmit}>
-    <div class="mb-6 text-xl font-bold tracking-tight">Cortes TV</div>
+    <div class="mb-6"><Logo height={26} /></div>
 
     <h1 class="text-3xl font-bold tracking-tight">{creating ? 'Crear cuenta' : 'Iniciar sesión'}</h1>
     <p class="mt-1.5 text-[15px] text-muted">

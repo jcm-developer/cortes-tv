@@ -308,6 +308,14 @@ Y una clase utilitaria reutilizable en tu CSS global:
 </nav>
 ```
 
+### Logo
+
+Inspirado en Apple TV, sin la manzana: un monograma **C** (anillo grueso abierto a la derecha) seguido de **tv** en minúsculas, todo dibujado con trazados vectoriales para no depender de ninguna fuente.
+
+- **Icono de app** (`public/icons/icon.svg`): letras blancas con un degradado muy suave sobre negro con degradado vertical (`#2c2c2e` a `#050506`). Sin esquinas redondeadas: iOS y los iconos *maskable* las recortan. Los PNG se generan con `node scripts/generate-icons.mjs`.
+- **Logotipo** (`Logo.svelte`): las mismas formas en `currentColor`, a 20px en la barra superior, 26px en el login y 32px en la pantalla de carga.
+- No se usa la manzana ni ninguna forma registrada de Apple.
+
 ### Barra de pestañas inferior (móvil)
 
 Clase `.glass-tabbar` en `src/styles/global.css`. Píldora de vidrio fija abajo (`.bottom-safe`), tres pestañas con icono y etiqueta, y un indicador (`.glass-tabbar__indicator`) que se desliza con `ease-apple`. La pestaña activa usa el acento, icono relleno y peso semibold, de modo que no depende solo del color. Solo por debajo de `sm`; en escritorio la navegación vive en la barra superior.

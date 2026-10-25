@@ -10,6 +10,7 @@
   import Sheet from './Sheet.svelte';
   import Toast from './Toast.svelte';
   import Login from './Login.svelte';
+  import Logo from './Logo.svelte';
   import { activeTab, settingsOpen, theme, applyTheme, onHistoryBack } from '../lib/ui';
   import { authed, authReady } from '../lib/auth';
   import '../lib/sync';
@@ -34,7 +35,7 @@
 
 {#if !$authReady}
   <div class="min-h-dvh grid place-items-center" aria-busy="true">
-    <span class="text-xl font-bold tracking-tight animate-pulse">Cortes TV</span>
+    <span class="animate-pulse"><Logo height={32} /></span>
   </div>
 {:else if !$authed}
   <Login />

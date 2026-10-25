@@ -58,6 +58,19 @@ runs a local backend on port 3210 for tests.
 The first sign-in on a device that already had a local library merges it into the account
 (`docs/domains/library.md`).
 
+## Local development
+
+```bash
+pnpm install
+cp .env.example .env      # then set PUBLIC_TMDB_API_KEY (and PUBLIC_CONVEX_URL for sync)
+pnpm dev                  # dev server
+npx convex dev            # only with Convex: pushes convex/ on every change
+pnpm check                # astro check: types and diagnostics
+pnpm build                # static build into dist/
+pnpm preview              # serve the build (the service worker runs here, not in dev)
+node scripts/generate-icons.mjs   # render public/icons/icon.svg to the PNG icons (needs Chrome or Edge)
+```
+
 ## Scheduled jobs
 
 None.

@@ -16,7 +16,7 @@ toasts. Visual rules live in `DESIGN.md`; this doc covers behaviour.
 - `src/components/TopNav.svelte`: top bar (links, theme and settings on desktop; brand and
   settings on mobile) and the mobile bottom tab bar.
 - `src/components/Detail.svelte`, `Sheet.svelte`, `TitleSheet.svelte`, `Toast.svelte`.
-- Building blocks: `Carousel.svelte`, `PosterCard.svelte`, `Select.svelte`,
+- Building blocks: `Logo.svelte`, `Carousel.svelte`, `PosterCard.svelte`, `Select.svelte`,
   `StarRating.svelte`, `Icon.svelte`.
 - `src/layouts/Layout.astro`: PWA meta, the no-flash theme script, the service worker
   registration, the blurred background.
@@ -58,8 +58,10 @@ toasts. Visual rules live in `DESIGN.md`; this doc covers behaviour.
 - The service worker only runs in production builds (`pnpm build && pnpm preview` to try it).
   Bump `VERSION` in `sw.js` to drop every cache; a new deploy is picked up anyway on the next
   open, because pages are network first.
-- The app icon is `public/logo.png` (manifest and `apple-touch-icon`); `public/icons/` holds an
-  older generic design that nothing references.
+- The logo exists twice: `public/icons/icon.svg` (the app icon, source of every PNG through
+  `scripts/generate-icons.mjs`) and `src/components/Logo.svelte` (the wordmark in the top bar,
+  login and splash). Change both together. iOS keeps the icon of an installed app until it is
+  removed and added again to the home screen.
 
 ## Related
 

@@ -49,7 +49,7 @@ cortes-tv/
 ├── public/                      # Static assets: logo, PWA icons, web manifest, service worker (sw.js)
 ├── scripts/
 │   ├── check-docs.mjs           # Docs vs code check (pre-commit and CI)
-│   └── generate-icons.mjs       # Regenerates the PWA PNG icons, no dependencies
+│   └── generate-icons.mjs       # Renders public/icons/icon.svg to the PWA PNG icons (headless Chrome)
 ├── src/
 │   ├── components/              # Svelte components; App.svelte is the root island
 │   ├── layouts/Layout.astro     # HTML shell, PWA meta, no-flash theme script, background
