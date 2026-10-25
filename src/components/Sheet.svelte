@@ -1,7 +1,10 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import Icon from './Icon.svelte';
+
   /**
-   * Renders a modal bottom sheet that closes on Escape and on backdrop press.
+   * Renders a modal glass sheet: floating at the bottom on phones, centred on wider screens.
+   * Closes on Escape, on the close button and on a backdrop press.
    *
    * @param open - Whether the sheet is shown.
    * @param title - The sheet heading, also its accessible name.
@@ -19,7 +22,7 @@
   let { open, title, hideTitle = false, onClose, children }: Props = $props();
 
   function onKey(e: KeyboardEvent) {
-    if (e.key === 'Escape') onClose();
+    if (open && e.key === 'Escape') onClose();
   }
 </script>
 
@@ -27,25 +30,25 @@
 
 {#if open}
   <div
-    class="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/45 backdrop-blur-sm animate-fade-in"
+    class="fixed inset-0 z-[150] flex items-end sm:items-center justify-center bg-black/35 animate-fade-in
+           px-2 pb-[calc(var(--safe-bottom)+0.5rem)] pt-[calc(var(--safe-top)+1.5rem)] sm:p-6"
     role="presentation"
-    onclick={onClose}
+    onclick={(e) => e.target === e.currentTarget && onClose()}
   >
     <div
-      class="shadow-sheet w-full sm:max-w-md max-h-[88dvh] overflow-y-auto no-scrollbar
-             rounded-t-4xl sm:rounded-4xl px-5 sm:px-6 pt-2.5 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]
-             bg-neutral-50/95 dark:bg-neutral-900/95 backdrop-blur-2xl backdrop-saturate-150
-             border border-black/10 dark:border-white/10
-             animate-slide-up sm:animate-scale-in"
+      class="glass-sheet w-full sm:max-w-md max-h-full overflow-y-auto overscroll-contain no-scrollbar p-5 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-label={title ?? 'Diálogo'}
-      onclick={(e) => e.stopPropagation()}
     >
-      <div class="sm:hidden mx-auto mt-1 mb-3 h-1.5 w-10 rounded-full bg-black/15 dark:bg-white/20" aria-hidden="true"></div>
-      {#if title && !hideTitle}
-        <h2 class="text-2xl font-semibold tracking-tight mb-4 mt-1">{title}</h2>
-      {/if}
+      <div class="flex items-start justify-between gap-3 {hideTitle ? 'absolute top-4 right-4 z-10' : 'mb-5'}">
+        {#if title && !hideTitle}
+          <h2 class="text-[1.375rem] font-bold tracking-tight pt-1">{title}</h2>
+        {/if}
+        <button type="button" class="glass-btn glass-btn--plain glass-btn--sm glass-btn--icon shrink-0" onclick={onClose} aria-label="Cerrar">
+          <Icon name="close" size={18} />
+        </button>
+      </div>
       {@render children()}
     </div>
   </div>

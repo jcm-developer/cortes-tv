@@ -1,21 +1,21 @@
 <script lang="ts">
-  /** Renders the root island: auth gate, navigation, active tab and overlays; owns the theme and history sync. */
+  /** Renders the root island: auth gate, active tab, tab bar and overlays; owns the theme, scroll lock and history sync. */
   import Home from './Home.svelte';
   import Search from './Search.svelte';
   import Library from './Library.svelte';
   import Detail from './Detail.svelte';
-  import TopNav from './TopNav.svelte';
+  import TabBar from './TabBar.svelte';
   import TitleSheet from './TitleSheet.svelte';
   import Settings from './Settings.svelte';
   import Sheet from './Sheet.svelte';
   import Toast from './Toast.svelte';
   import Login from './Login.svelte';
   import Logo from './Logo.svelte';
-  import { activeTab, settingsOpen, theme, applyTheme, onHistoryBack } from '../lib/ui';
+  import { activeTab, settingsOpen, theme, applyTheme, onHistoryBack, detailTarget, titleSheetTarget } from '../lib/ui';
   import { authed, authReady } from '../lib/auth';
   import '../lib/sync';
 
-  // Mantén el <html> sincronizado con el tema (incluye cambios del sistema).
+  // Keep <html> in step with the theme, including system scheme changes.
   $effect(() => {
     applyTheme($theme);
   });
@@ -31,31 +31,32 @@
     window.addEventListener('popstate', onHistoryBack);
     return () => window.removeEventListener('popstate', onHistoryBack);
   });
+
+  // While an overlay is open the page behind it must not scroll (iOS scrolls it otherwise).
+  $effect(() => {
+    const locked = !!$detailTarget || !!$titleSheetTarget || $settingsOpen;
+    document.documentElement.classList.toggle('is-locked', locked);
+  });
 </script>
 
 {#if !$authReady}
   <div class="min-h-dvh grid place-items-center" aria-busy="true">
-    <span class="animate-pulse"><Logo height={32} /></span>
+    <span class="animate-pulse"><Logo height={40} /></span>
   </div>
 {:else if !$authed}
   <Login />
 {:else}
-  <TopNav />
-
-  <!-- Same frame as the top bar (padding outside, max-w-5xl inside) so content lines up with
-       it; the bottom padding clears the mobile tab bar. -->
-  <main class="px-3 sm:px-5 pt-[calc(env(safe-area-inset-top,0px)+5rem)] pb-[calc(env(safe-area-inset-bottom,0px)+7rem)] sm:pb-16">
-    <div class="mx-auto w-full max-w-5xl">
-      {#if $activeTab === 'home'}
-        <Home />
-      {:else if $activeTab === 'search'}
-        <Search />
-      {:else}
-        <Library />
-      {/if}
-    </div>
+  <main class="page-x mx-auto w-full max-w-7xl pt-[calc(var(--safe-top)+1rem)] pb-[var(--tabbar-room)]">
+    {#if $activeTab === 'home'}
+      <Home />
+    {:else if $activeTab === 'search'}
+      <Search />
+    {:else}
+      <Library />
+    {/if}
   </main>
 
+  <TabBar />
   <Detail />
   <TitleSheet />
 

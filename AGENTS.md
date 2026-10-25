@@ -55,7 +55,7 @@ cortes-tv/
 │   ├── layouts/Layout.astro     # HTML shell, PWA meta, no-flash theme script, background
 │   ├── lib/                     # Stores and logic: auth, store, sync, convex, recommend, tmdb, ui, format, types
 │   ├── pages/index.astro        # The only page; mounts App client-only
-│   └── styles/global.css        # Design tokens and glass utilities
+│   └── styles/                  # global.css (tokens, content layer), glass.css (Liquid Glass chrome)
 ├── DESIGN.md                    # Design system (Spanish): type, color, depth, motion
 ├── astro.config.mjs             # Site and base path, integrations
 └── tailwind.config.js           # Tailwind theme mapped to the CSS tokens

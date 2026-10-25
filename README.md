@@ -44,10 +44,10 @@
   iPhone, works offline and catches up when the connection returns.
 
 **App**
-- Apple Human Interface and Liquid Glass design ([DESIGN.md](DESIGN.md)), light, dark and
-  system themes with no flash on load.
-- Top bar on desktop, bottom tab bar on mobile, iPhone safe areas, installable as a PWA that
-  opens offline (service worker).
+- Apple TV look with Liquid Glass chrome built on the vendored `liquid-glass` skill
+  ([DESIGN.md](DESIGN.md)), light, dark and system themes with no flash on load.
+- One layout for iPhone and desktop: a floating glass tab bar, iPhone safe areas, installable
+  as a PWA that opens offline (service worker).
 - Without Convex: an optional build-time login and data in `localStorage` only.
 - JSON export and import (replace or merge), including backups from the old list format.
 

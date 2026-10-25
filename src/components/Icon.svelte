@@ -47,6 +47,7 @@
     size?: number;
   }
   let { name, size = 24 }: Props = $props();
+  const uid = $props.id();
 </script>
 
 <svg
@@ -139,8 +140,12 @@
     <circle cx="12" cy="12" r="9" />
     <path d="m8 12.3 2.7 2.7L16 9.5" />
   {:else if name === 'check-circle-fill'}
-    <circle cx="12" cy="12" r="9.5" fill="currentColor" stroke="none" />
-    <path d="m8 12.3 2.7 2.7L16 9.5" stroke="white" stroke-width="2.2" />
+    <!-- The check is cut out of the disc, so it shows whatever is behind the icon -->
+    <mask id={uid}>
+      <rect width="24" height="24" fill="white" stroke="none" />
+      <path d="m8 12.3 2.7 2.7L16 9.5" stroke="black" stroke-width="2.2" />
+    </mask>
+    <circle cx="12" cy="12" r="9.5" fill="currentColor" stroke="none" mask="url(#{uid})" />
   {:else if name === 'library'}
     <rect x="3.5" y="4" width="4" height="16" rx="1" />
     <rect x="9.5" y="4" width="4" height="16" rx="1" />

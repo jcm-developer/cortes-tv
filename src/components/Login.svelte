@@ -37,12 +37,12 @@
   }
 </script>
 
-<div class="min-h-dvh grid place-items-center px-4 pb-16 pt-[calc(env(safe-area-inset-top,0px)+1rem)]">
-  <form class="glass w-full max-w-sm p-7 sm:p-8 animate-scale-in" onsubmit={onSubmit}>
-    <div class="mb-6"><Logo height={26} /></div>
+<div class="min-h-dvh flex flex-col items-center justify-center gap-8 px-4 pt-[calc(var(--safe-top)+1rem)] pb-[calc(var(--safe-bottom)+3rem)]">
+  <Logo height={56} />
 
-    <h1 class="text-3xl font-bold tracking-tight">{creating ? 'Crear cuenta' : 'Iniciar sesión'}</h1>
-    <p class="mt-1.5 text-[15px] text-muted">
+  <form class="glass-sheet w-full max-w-sm p-6 sm:p-7" onsubmit={onSubmit}>
+    <h1 class="text-[1.75rem] font-bold tracking-tight">{creating ? 'Crear cuenta' : 'Iniciar sesión'}</h1>
+    <p class="mt-1 text-[15px] text-muted">
       {#if !cloud}
         Introduce tus credenciales para acceder.
       {:else if creating}
@@ -53,44 +53,42 @@
     </p>
 
     <div class="mt-6 flex flex-col gap-3">
-      <label class="flex flex-col gap-1.5">
-        <span class="text-[11px] font-medium uppercase tracking-wide text-muted">{cloud ? 'Email' : 'Usuario'}</span>
-        <input
-          bind:this={userEl}
-          class="field"
-          type={cloud ? 'email' : 'text'}
-          inputmode={cloud ? 'email' : 'text'}
-          bind:value={user}
-          autocomplete={cloud ? 'email' : 'username'}
-          autocapitalize="off"
-          spellcheck="false"
-          oninput={() => (error = null)}
-        />
-      </label>
-      <label class="flex flex-col gap-1.5">
-        <span class="text-[11px] font-medium uppercase tracking-wide text-muted">Contraseña</span>
-        <input
-          class="field"
-          type="password"
-          bind:value={pass}
-          autocomplete={creating ? 'new-password' : 'current-password'}
-          oninput={() => (error = null)}
-        />
-      </label>
+      <input
+        bind:this={userEl}
+        class="field"
+        type={cloud ? 'email' : 'text'}
+        inputmode={cloud ? 'email' : 'text'}
+        placeholder={cloud ? 'Email' : 'Usuario'}
+        aria-label={cloud ? 'Email' : 'Usuario'}
+        bind:value={user}
+        autocomplete={cloud ? 'email' : 'username'}
+        autocapitalize="off"
+        spellcheck="false"
+        oninput={() => (error = null)}
+      />
+      <input
+        class="field"
+        type="password"
+        placeholder="Contraseña"
+        aria-label="Contraseña"
+        bind:value={pass}
+        autocomplete={creating ? 'new-password' : 'current-password'}
+        oninput={() => (error = null)}
+      />
     </div>
 
     {#if error}
-      <p class="mt-3 text-[15px] text-red-500" role="alert">{error}</p>
+      <p class="mt-3 text-[15px] text-danger" role="alert">{error}</p>
     {/if}
 
-    <button type="submit" class="btn-primary w-full mt-5" disabled={busy || !user.trim() || !pass}>
+    <button type="submit" class="glass-btn glass-btn--plain glass-btn--prominent w-full mt-5 min-h-12" disabled={busy || !user.trim() || !pass}>
       {busy ? 'Un momento…' : creating ? 'Crear cuenta' : 'Entrar'}
     </button>
 
     {#if cloud}
       <button
         type="button"
-        class="mt-3 w-full text-center text-[15px] font-medium text-accent active:opacity-60"
+        class="mt-3 w-full min-h-11 text-center text-[15px] font-medium text-accent active:opacity-60"
         onclick={() => {
           creating = !creating;
           error = null;

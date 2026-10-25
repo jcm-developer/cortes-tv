@@ -105,3 +105,19 @@ standards checks. Hosting in D1 changes; the rest of D1 (static site) stands.
 Consequences: build settings and variables live in the Cloudflare dashboard (documented in
 `docs/operations.md`). pnpm 11 is pinned in the build command, not taken from the build
 image. Response headers come from `public/_headers`.
+
+## D10. Liquid Glass chrome from the vendored skill, one layout for every screen (2026-10-25)
+Status: accepted
+Context: the first design used a hand-made frosted recipe (24px blur, glass on content) and
+two navigations (a desktop top bar and a mobile tab bar), which drifted apart and caused most
+of the iPhone bugs: pages scrolling behind overlays, stuck hover states, misplaced arrows and
+menus.
+Decision: the chrome layer is ported from the `liquid-glass` skill into `src/styles/glass.css`
+(tokens, button, tab bar, segmented control, search, popover, toast, sheet, with the four
+accessibility fallbacks), its scheme driven by the app theme. One floating tab bar and a
+settings button per tab header serve every screen size. Posters and other content stay
+opaque. `liquid-glass.js` is not loaded: Svelte drives the indicators and the refraction it
+adds never runs on touch devices.
+Consequences: glass appears only on the tab bar, floating buttons, sheets, menus and toasts,
+which keeps iOS under the three-surface budget. Refraction is not available on desktop
+Chromium; adding the script later only needs `data-refract` on the bars.

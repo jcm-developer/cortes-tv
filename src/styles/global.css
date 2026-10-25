@@ -1,40 +1,45 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* The glass chrome layer sits between components and utilities, so a utility class can still
+   override it (position, display, spacing). */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import './glass.css';
+@import 'tailwindcss/utilities';
 
 /* =============================================================================
-   Cortes TV: Apple HIG / Liquid Glass design system (see DESIGN.md)
+   Cortes TV: app tokens and the content layer (see DESIGN.md). The glass chrome layer
+   lives in glass.css.
    ========================================================================== */
 
 @layer base {
   :root {
-    /* Acento (System Blue de Apple) */
+    /* iOS system colours, light */
     --accent: 211 100% 50%; /* #007AFF */
-    --accent-hover: 211 100% 45%;
+    --success: 135 59% 49%; /* #34C759 */
+    --danger: 3 100% 59%; /* #FF3B30 */
+    --bg: 240 24% 96%; /* #F2F2F7 */
+    --surface: 0 0% 100%;
+    --text: 240 3% 12%; /* #1D1D1F */
+    --text-muted: 240 2% 44%; /* #6E6E73 */
+    --fill: 240 6% 50% / 0.12; /* tertiary system fill */
 
-    /* Superficies (modo claro) */
-    --bg: 0 0% 96%; /* fondo de app, gris cálido */
-    --surface: 0 0% 100%; /* tarjetas sólidas */
-    --text: 0 0% 9%;
-    --text-muted: 0 0% 45%;
-    --border: 0 0% 0% / 0.08;
-
-    /* Vidrio */
-    --glass-bg: 255 255 255 / 0.55;
-    --glass-border: 255 255 255 / 0.6;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    /* Distance from the bottom edge to the floating tab bar, and the room content leaves for it */
+    --tabbar-bottom: max(12px, calc(var(--safe-bottom) - 8px));
+    --tabbar-room: calc(var(--tabbar-bottom) + 64px + 24px);
 
     color-scheme: light;
   }
 
   .dark {
-    --bg: 0 0% 7%;
-    --surface: 0 0% 12%;
-    --text: 0 0% 98%;
-    --text-muted: 0 0% 60%;
-    --border: 255 255 255 / 0.1;
-
-    --glass-bg: 30 30 30 / 0.5;
-    --glass-border: 255 255 255 / 0.12;
+    --accent: 210 100% 52%; /* #0A84FF */
+    --success: 135 64% 50%; /* #30D158 */
+    --danger: 3 100% 61%; /* #FF453A */
+    --bg: 0 0% 0%;
+    --surface: 240 3% 11%; /* #1C1C1E */
+    --text: 240 11% 96%; /* #F5F5F7 */
+    --text-muted: 240 2% 60%; /* #98989D */
+    --fill: 240 6% 60% / 0.18;
 
     color-scheme: dark;
   }
@@ -43,32 +48,34 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
-    /* Sin barra de scroll vertical en toda la app (se mantiene el scroll) */
     scrollbar-width: none;
-    -ms-overflow-style: none;
   }
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar {
+  html::-webkit-scrollbar {
     display: none;
+  }
+  /* Overlays (detail, sheets) lock the page so it does not scroll behind them on iOS. */
+  html.is-locked,
+  html.is-locked body {
+    overflow: hidden;
   }
 
   body {
     @apply bg-bg text-content font-sans antialiased;
     min-height: 100dvh;
-    /* La interfaz es una app: nada de selección accidental de texto */
+    overflow-x: clip;
+    /* An app, not a document: no accidental text selection */
     -webkit-user-select: none;
     user-select: none;
     overscroll-behavior-y: none;
   }
 
-  /* Inputs a 16px mínimo → evita el zoom automático de iOS al enfocar */
+  /* 16px minimum: iOS zooms into smaller inputs on focus */
   input,
   textarea,
   select {
     font-size: 16px;
   }
 
-  /* Oculta el botón nativo "limpiar" de los inputs de búsqueda (usamos uno propio) */
   input[type='search']::-webkit-search-cancel-button,
   input[type='search']::-webkit-search-decoration {
     -webkit-appearance: none;
@@ -80,7 +87,7 @@
     appearance: none;
   }
 
-  /* Permite seleccionar solo el contenido real (sinopsis, etc.) */
+  /* Real content (synopsis, titles) stays selectable */
   .selectable {
     -webkit-user-select: text;
     user-select: text;
@@ -90,124 +97,70 @@
     display: block;
     max-width: 100%;
   }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--accent));
+    outline-offset: 2px;
+  }
 }
 
 @layer components {
-  /* Vidrio (Liquid Glass): siempre sobre el fondo atmosférico */
-  .glass {
-    @apply bg-white/55 dark:bg-neutral-900/50
-           backdrop-blur-xl backdrop-saturate-150
-           border border-white/60 dark:border-white/10
-           shadow-glass rounded-3xl;
+  /* Large title of each tab (iOS Large Title) */
+  .large-title {
+    @apply text-[2.125rem] leading-tight font-bold tracking-tight;
   }
-  .glass-bar {
-    @apply bg-white/60 dark:bg-neutral-900/55
-           backdrop-blur-md backdrop-saturate-150
-           border border-white/60 dark:border-white/10
-           shadow-glass;
+  /* Section heading inside a page (iOS Title 3) */
+  .section-title {
+    @apply text-xl font-bold tracking-tight;
   }
 
-  /* Botón primario */
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 min-h-11 px-5 rounded-xl
-           bg-accent text-white font-semibold
-           shadow-[0_4px_14px_hsl(var(--accent)/0.4)]
-           transition-all duration-150 ease-apple
-           hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50
-           disabled:opacity-40 disabled:pointer-events-none;
-  }
-  /* Botón secundario (vidrio) */
-  .btn-glass {
-    @apply glass !rounded-xl min-h-11 px-5 inline-flex items-center justify-center gap-2
-           font-medium text-neutral-800 dark:text-neutral-100
-           transition-transform duration-150 ease-apple
-           hover:scale-[1.02] active:scale-[0.98]
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50;
-  }
-  .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 min-h-11 px-5 rounded-xl
-           bg-red-500/10 text-red-500 font-semibold
-           transition-all duration-150 ease-apple hover:scale-[1.02] active:scale-[0.98];
-  }
-  /* Campo de texto */
+  /* Flat text field (content layer) */
   .field {
-    @apply w-full min-h-11 px-4 rounded-xl
-           bg-white/70 dark:bg-neutral-800/60 backdrop-blur
-           border border-black/5 dark:border-white/10
-           text-base placeholder:text-neutral-400
-           focus:outline-none focus:ring-2 focus:ring-accent/50 transition;
+    @apply w-full min-h-11 px-4 rounded-xl bg-fill text-content text-base
+           placeholder:text-muted outline-none transition-shadow
+           focus:ring-2 focus:ring-accent/60;
   }
-  /* Chip / filtro */
+
+  /* Flat filter chip (content layer) */
   .chip {
-    @apply inline-flex items-center gap-1.5 min-h-9 px-3.5 rounded-full
-           text-sm font-medium text-muted
-           bg-black/[0.04] dark:bg-white/[0.06] border border-transparent
-           transition-all duration-150 ease-apple active:scale-95;
+    @apply inline-flex shrink-0 items-center gap-1.5 min-h-9 px-3.5 rounded-full
+           bg-fill text-sm font-medium text-content
+           transition-colors duration-150;
   }
-  .chip[aria-pressed='true'],
-  .chip.is-active {
-    @apply bg-accent/10 text-accent border-accent/20;
+  .chip[aria-pressed='true'] {
+    @apply bg-content text-bg;
   }
 
-  /* Bottom tab bar (mobile chrome): a glass pill with a sliding selection */
-  .glass-tabbar {
-    @apply relative grid grid-cols-3 p-1.5 rounded-full
-           bg-white/60 dark:bg-neutral-900/55
-           backdrop-blur-md backdrop-saturate-150
-           border border-white/60 dark:border-white/10
-           shadow-sheet;
+  /* Inset grouped list (iOS Settings) for sheets */
+  .group-list {
+    @apply flex flex-col rounded-2xl bg-fill overflow-hidden;
   }
-  .glass-tabbar__indicator {
-    @apply absolute top-1.5 bottom-1.5 left-1.5 rounded-full
-           bg-black/[0.06] dark:bg-white/[0.12]
-           transition-transform duration-500 ease-apple;
-    width: calc((100% - 0.75rem) / 3);
+  .group-list > * + * {
+    @apply border-t border-black/[0.06] dark:border-white/[0.08];
   }
-  .glass-tabbar__tab {
-    @apply relative z-10 flex flex-col items-center justify-center gap-0.5 min-h-[3.25rem] rounded-full
-           text-[11px] font-medium text-muted transition-colors duration-150
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50;
-  }
-  .glass-tabbar__tab[aria-current='page'] {
-    @apply text-accent font-semibold;
-  }
-
-  /* Segmented control (content layer: flat fill, no glass) */
-  .segmented {
-    @apply relative grid auto-cols-fr grid-flow-col p-1 rounded-xl bg-black/[0.05] dark:bg-white/[0.08];
-  }
-  .segmented > button {
-    @apply relative z-10 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 rounded-lg
-           text-sm font-medium text-muted transition-colors duration-150
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50;
-  }
-  .segmented > button[aria-pressed='true'] {
-    @apply text-content font-semibold;
-  }
-  .segmented__thumb {
-    @apply absolute top-1 bottom-1 left-1 rounded-lg bg-white dark:bg-neutral-700 shadow-subtle
-           transition-transform duration-300 ease-apple;
+  .group-label {
+    @apply px-1 mb-2 text-[13px] font-medium text-muted;
   }
 }
 
 @layer utilities {
   .no-scrollbar {
     scrollbar-width: none;
-    -ms-overflow-style: none;
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  /* Carrusel horizontal con inercia */
+  /* Horizontal row that bleeds to the screen edges and snaps to the page margin */
   .h-scroll {
     display: flex;
     overflow-x: auto;
     overflow-y: hidden;
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
+    margin-inline: calc(-1 * var(--page-x));
+    padding-inline: var(--page-x);
+    scroll-padding-inline: var(--page-x);
   }
   .h-scroll::-webkit-scrollbar {
     display: none;
@@ -222,27 +175,46 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  /* Safe areas iOS */
-  .pt-safe {
-    padding-top: env(safe-area-inset-top, 0px);
+  /* Horizontal page margin; rows read it to bleed to the edges */
+  .page-x {
+    --page-x: 1rem;
+    padding-inline: var(--page-x);
   }
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+  @media (min-width: 640px) {
+    .page-x {
+      --page-x: 1.5rem;
+    }
   }
-  .top-safe {
-    top: calc(env(safe-area-inset-top, 0px) + 1rem);
-  }
-  /* Bottom offset of floating chrome above the home indicator */
-  .bottom-safe {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+  @media (min-width: 1024px) {
+    .page-x {
+      --page-x: 2.5rem;
+    }
   }
 }
 
-/* Skeleton de carga */
+/* Atmospheric background: soft colour behind the glass, painted once (no blurred layers) */
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 40rem at 0% 0%, rgb(0 122 255 / 0.14), transparent 60%),
+    radial-gradient(50rem 36rem at 100% 30%, rgb(175 82 222 / 0.1), transparent 60%),
+    radial-gradient(56rem 40rem at 30% 100%, rgb(255 45 85 / 0.08), transparent 60%);
+}
+.dark .atmosphere {
+  background:
+    radial-gradient(60rem 40rem at 0% 0%, rgb(10 132 255 / 0.16), transparent 60%),
+    radial-gradient(50rem 36rem at 100% 30%, rgb(191 90 242 / 0.1), transparent 60%),
+    radial-gradient(56rem 40rem at 30% 100%, rgb(255 55 95 / 0.07), transparent 60%);
+}
+
+/* Loading skeleton */
 .skeleton {
   position: relative;
   overflow: hidden;
-  background: hsl(var(--text) / 0.06);
+  background: hsl(var(--fill));
 }
 .skeleton::after {
   content: '';
@@ -258,39 +230,6 @@
   }
 }
 
-/* Glass fallbacks for the chrome layer (liquid-glass skill) */
-@media (prefers-reduced-transparency: reduce) {
-  .glass,
-  .glass-bar,
-  .glass-tabbar {
-    background: hsl(var(--surface));
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-  }
-}
-@media (prefers-contrast: more) {
-  .glass,
-  .glass-bar,
-  .glass-tabbar {
-    background: hsl(var(--surface));
-    outline: 2px solid currentColor;
-    box-shadow: none;
-  }
-}
-@media (forced-colors: active) {
-  .glass,
-  .glass-bar,
-  .glass-tabbar {
-    background: Canvas;
-    color: CanvasText;
-    outline: 1px solid CanvasText;
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-    box-shadow: none;
-  }
-}
-
-/* Reducir movimiento */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

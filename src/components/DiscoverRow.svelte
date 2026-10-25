@@ -8,15 +8,13 @@
    * Loads one TMDB discovery row and shows it as a carousel of posters.
    *
    * @param title - The row heading.
-   * @param subtitle - A smaller line next to the heading.
    * @param loader - Fetches the titles; receives a signal that aborts on unmount.
    */
   interface Props {
     title: string;
-    subtitle?: string;
     loader: (signal?: AbortSignal) => Promise<MediaSummary[]>;
   }
-  let { title, subtitle, loader }: Props = $props();
+  let { title, loader }: Props = $props();
 
   let items = $state<MediaSummary[]>([]);
   let loading = $state(true);
@@ -38,15 +36,15 @@
 </script>
 
 {#if loading}
-  <Carousel {title} {subtitle}>
+  <Carousel {title}>
     {#each Array(6) as _, i (i)}
-      <div style="width:132px"><div class="skeleton aspect-[2/3] rounded-2xl"></div></div>
+      <div class="w-[8.25rem] sm:w-[9.5rem]"><div class="skeleton aspect-[2/3] rounded-xl"></div></div>
     {/each}
   </Carousel>
 {:else if error}
-  <!-- silencioso: una fila que falla no debe romper la Home -->
+  <!-- Silent: one failing row must not break Home -->
 {:else if items.length > 0}
-  <Carousel {title} {subtitle}>
+  <Carousel {title}>
     {#each items as item (item.mediaType + item.id)}
       <PosterCard {item} />
     {/each}

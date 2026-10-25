@@ -10,7 +10,7 @@
  *
  * Bump VERSION to drop every cache on the next activation. See `docs/domains/ui.md`.
  */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const SHELL = `cortes-tv-shell-${VERSION}`;
 const IMAGES = `cortes-tv-images-${VERSION}`;
 const API = `cortes-tv-api-${VERSION}`;

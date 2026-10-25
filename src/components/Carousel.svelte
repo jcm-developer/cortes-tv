@@ -3,25 +3,21 @@
   import Icon from './Icon.svelte';
 
   /**
-   * Renders a horizontal scroll row with a heading and arrow buttons on wide screens.
+   * Renders a horizontal row that bleeds to the screen edges, with a heading, an optional "see
+   * all" action and, on devices with a pointer, scroll buttons in the heading.
    *
    * @param title - The heading.
-   * @param subtitle - A smaller line next to the heading.
-   * @param onSeeAll - Shows a "see all" action that calls it.
-   * @param arrowTop - The vertical position of the arrows, a Tailwind `top-*` class; centered
-   *     on a poster by default.
-   * @param class - Classes of the `<section>`; overrides the margin when carousels are nested.
+   * @param onSeeAll - Shows a "Ver todo" action that calls it.
+   * @param class - Classes of the `<section>`; sets the vertical margin.
    * @param children - The items.
    */
   interface Props {
     title?: string;
-    subtitle?: string;
     onSeeAll?: () => void;
-    arrowTop?: string;
     class?: string;
     children: Snippet;
   }
-  let { title, subtitle, onSeeAll, arrowTop = 'top-[6rem]', class: className = 'my-7 animate-fade-up', children }: Props = $props();
+  let { title, onSeeAll, class: className = 'mb-8 animate-fade-up', children }: Props = $props();
 
   let track = $state<HTMLDivElement>();
   let canLeft = $state(false);
@@ -34,10 +30,9 @@
     canRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
   }
   function scroll(dir: 1 | -1) {
-    track?.scrollBy({ left: dir * (track.clientWidth * 0.85), behavior: 'smooth' });
+    track?.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: 'smooth' });
   }
 
-  // Recalcula al montar y cuando cambie el contenido/tamaño.
   $effect(() => {
     update();
   });
@@ -46,51 +41,26 @@
 <svelte:window onresize={update} />
 
 <section class={className}>
-  {#if title}
-    <header class="flex items-baseline justify-between gap-3 mb-3">
-      <div class="flex items-baseline gap-2 min-w-0">
-        <h2 class="text-2xl font-semibold tracking-tight truncate">{title}</h2>
-        {#if subtitle}<span class="text-xs text-muted shrink-0">{subtitle}</span>{/if}
+  {#if title || onSeeAll}
+    <header class="flex items-center justify-between gap-3 mb-3">
+      {#if title}<h2 class="section-title truncate">{title}</h2>{/if}
+      <div class="flex shrink-0 items-center gap-2">
+        {#if onSeeAll}
+          <button type="button" class="text-[15px] font-medium text-accent active:opacity-60" onclick={onSeeAll}>Ver todo</button>
+        {/if}
+        <div class="hidden [@media(hover:hover)]:flex gap-1.5">
+          <button type="button" class="glass-btn glass-btn--sm glass-btn--icon" onclick={() => scroll(-1)} disabled={!canLeft} aria-label="Anteriores">
+            <Icon name="chevron-left" size={18} />
+          </button>
+          <button type="button" class="glass-btn glass-btn--sm glass-btn--icon" onclick={() => scroll(1)} disabled={!canRight} aria-label="Siguientes">
+            <Icon name="chevron-right" size={18} />
+          </button>
+        </div>
       </div>
-      {#if onSeeAll}
-        <button class="shrink-0 text-[15px] font-medium text-accent active:opacity-60" onclick={onSeeAll}>
-          Ver todo
-        </button>
-      {/if}
     </header>
   {/if}
 
-  <div class="relative group">
-    <div
-      bind:this={track}
-      onscroll={update}
-      class="h-scroll gap-3.5 pb-1"
-    >
-      {@render children()}
-    </div>
-
-    <!-- Flechas de scroll (solo PC, aparecen al pasar el ratón) -->
-    {#if canLeft}
-      <button
-        class="hidden sm:grid place-items-center absolute left-0 {arrowTop} -translate-y-1/2 z-10 h-10 w-10 rounded-full
-               bg-white/80 dark:bg-neutral-800/80 backdrop-blur-xl border border-black/10 dark:border-white/15 shadow-glass
-               text-content opacity-0 group-hover:opacity-100 transition-all duration-200 ease-apple hover:scale-105 active:scale-95"
-        onclick={() => scroll(-1)}
-        aria-label="Desplazar a la izquierda"
-      >
-        <Icon name="chevron-left" size={22} />
-      </button>
-    {/if}
-    {#if canRight}
-      <button
-        class="hidden sm:grid place-items-center absolute right-0 {arrowTop} -translate-y-1/2 z-10 h-10 w-10 rounded-full
-               bg-white/80 dark:bg-neutral-800/80 backdrop-blur-xl border border-black/10 dark:border-white/15 shadow-glass
-               text-content opacity-0 group-hover:opacity-100 transition-all duration-200 ease-apple hover:scale-105 active:scale-95"
-        onclick={() => scroll(1)}
-        aria-label="Desplazar a la derecha"
-      >
-        <Icon name="chevron-right" size={22} />
-      </button>
-    {/if}
+  <div bind:this={track} onscroll={update} class="h-scroll gap-3 sm:gap-4">
+    {@render children()}
   </div>
 </section>

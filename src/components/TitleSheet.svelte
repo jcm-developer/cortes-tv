@@ -40,12 +40,12 @@
 
 <Sheet open={!!target} onClose={closeTitleSheet} title={target?.title ?? 'Título'} hideTitle>
   {#if target}
-    <div class="flex items-center gap-3.5 mb-5">
-      <div class="w-14 shrink-0 aspect-[2/3] rounded-lg overflow-hidden bg-black/5 dark:bg-white/10 shadow-poster">
+    <div class="flex items-center gap-3.5 mb-5 pr-12">
+      <div class="w-14 shrink-0 aspect-[2/3] rounded-lg overflow-hidden bg-fill">
         {#if poster}<img src={poster} alt="" class="h-full w-full object-cover" />{/if}
       </div>
       <div class="min-w-0">
-        <h2 class="text-xl font-semibold tracking-tight leading-tight line-clamp-2">{target.title}</h2>
+        <h2 class="text-xl font-bold tracking-tight leading-tight line-clamp-2">{target.title}</h2>
         <p class="mt-0.5 text-sm text-muted">
           {[target.year, mediaTypeLabel(target.mediaType)].filter(Boolean).join(' · ')}
         </p>
@@ -54,41 +54,38 @@
 
     <div class="grid grid-cols-2 gap-2.5">
       <button
-        class="flex flex-col items-center gap-1 rounded-2xl py-3.5 font-semibold transition-all duration-150 ease-apple active:scale-[0.97]
-               {stored?.status === 'pending' ? 'bg-accent text-white shadow-[0_4px_14px_hsl(var(--accent)/0.35)]' : 'bg-black/[0.05] dark:bg-white/[0.08] text-content'}"
+        type="button"
+        class="glass-btn glass-btn--plain min-h-14 {stored?.status === 'pending' ? 'glass-btn--prominent' : ''}"
         aria-pressed={stored?.status === 'pending'}
         onclick={() => choose('pending')}
       >
-        <Icon name={stored?.status === 'pending' ? 'bookmark-fill' : 'bookmark'} size={24} />
-        Pendiente
+        <Icon name={stored?.status === 'pending' ? 'bookmark-fill' : 'bookmark'} size={20} />Pendiente
       </button>
       <button
-        class="flex flex-col items-center gap-1 rounded-2xl py-3.5 font-semibold transition-all duration-150 ease-apple active:scale-[0.97]
-               {stored?.status === 'watched' ? 'bg-green-600 text-white shadow-[0_4px_14px_rgba(22,163,74,0.35)]' : 'bg-black/[0.05] dark:bg-white/[0.08] text-content'}"
+        type="button"
+        class="glass-btn glass-btn--plain min-h-14 {stored?.status === 'watched' ? 'glass-btn--success' : ''}"
         aria-pressed={stored?.status === 'watched'}
         onclick={() => choose('watched')}
       >
-        <Icon name={stored?.status === 'watched' ? 'check-circle-fill' : 'check-circle'} size={24} />
-        Vista
+        <Icon name={stored?.status === 'watched' ? 'check-circle-fill' : 'check-circle'} size={20} />Vista
       </button>
     </div>
 
     {#if stored?.status === 'watched'}
-      <div class="mt-5 animate-fade-in">
-        <p class="text-[11px] font-medium uppercase tracking-wide text-muted mb-1.5">Tu valoración</p>
+      <div class="mt-5 flex flex-col items-center animate-fade-in">
         <StarRating value={stored.rating} onChange={(v) => setRating(key, v)} size={34} showLabel />
       </div>
     {/if}
 
-    <div class="mt-6 flex flex-col gap-2.5">
-      {#if stored?.status === 'watched'}
-        <button class="btn-primary w-full" onclick={closeTitleSheet}>Listo</button>
-      {/if}
-      {#if stored}
-        <button class="btn-danger w-full" onclick={onRemove}>
+    {#if stored}
+      <div class="mt-5 flex flex-col gap-2.5">
+        {#if stored.status === 'watched'}
+          <button type="button" class="glass-btn glass-btn--plain glass-btn--prominent w-full" onclick={closeTitleSheet}>Listo</button>
+        {/if}
+        <button type="button" class="glass-btn glass-btn--plain glass-btn--danger w-full" onclick={onRemove}>
           <Icon name="trash" size={18} /> Quitar de la biblioteca
         </button>
-      {/if}
-    </div>
+      </div>
+    {/if}
   {/if}
 </Sheet>

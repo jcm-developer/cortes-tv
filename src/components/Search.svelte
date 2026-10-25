@@ -2,6 +2,8 @@
   /** Renders the Search tab: debounced TMDB multi search; each result opens the title sheet. */
   import PosterCard from './PosterCard.svelte';
   import Icon from './Icon.svelte';
+  import PageHeader from './PageHeader.svelte';
+  import MissingKey from './MissingKey.svelte';
   import { searchMulti, hasApiKey, TmdbError } from '../lib/tmdb';
   import type { MediaSummary } from '../lib/types';
 
@@ -13,6 +15,7 @@
   let debounce: ReturnType<typeof setTimeout> | null = null;
   let controller: AbortController | null = null;
   let inputEl: HTMLInputElement;
+  const grid = 'grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-3 gap-y-5 sm:gap-x-4';
 
   $effect(() => {
     inputEl?.focus();
@@ -56,71 +59,65 @@
   }
 </script>
 
-<div class="animate-fade-in pt-3 sm:pt-6">
-  <header class="mb-5">
-    <h1 class="text-2xl font-bold tracking-tight">Buscar</h1>
-    <p class="mt-1.5 text-[15px] text-muted">Encuentra películas, series y documentales, y márcalos como pendientes o vistos.</p>
-  </header>
+<div class="animate-fade-in">
+  <PageHeader title="Buscar" />
 
-  <div class="glass-bar flex items-center gap-2.5 h-12 px-4 rounded-2xl text-muted">
-    <Icon name="search" size={20} />
-    <input
-      bind:this={inputEl}
-      type="search"
-      inputmode="search"
-      placeholder="Películas, series, documentales…"
-      bind:value={query}
-      oninput={onInput}
-      enterkeyhint="search"
-      autocomplete="off"
-      autocorrect="off"
-      autocapitalize="off"
-      spellcheck="false"
-      aria-label="Buscar"
-      class="flex-1 min-w-0 bg-transparent border-none outline-none text-content placeholder:text-muted/70"
-    />
-    {#if query}
-      <button class="grid h-7 w-7 place-items-center rounded-full bg-black/[0.06] dark:bg-white/10 active:scale-90 transition-transform" onclick={clearSearch} aria-label="Limpiar búsqueda">
-        <Icon name="close" size={17} />
-      </button>
-    {/if}
+  <!-- Sticky glass pill: chrome over the results that scroll under it -->
+  <div class="sticky top-[calc(var(--safe-top)+0.5rem)] z-30">
+    <div class="glass-search" role="search">
+      <Icon name="search" size={19} />
+      <input
+        bind:this={inputEl}
+        class="glass-search__input"
+        type="search"
+        inputmode="search"
+        placeholder="Películas, series, documentales…"
+        bind:value={query}
+        oninput={onInput}
+        enterkeyhint="search"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-label="Buscar"
+      />
+      {#if query}
+        <button type="button" class="glass-btn glass-btn--plain glass-btn--sm glass-btn--icon" onclick={clearSearch} aria-label="Limpiar búsqueda">
+          <Icon name="close" size={16} />
+        </button>
+      {/if}
+    </div>
   </div>
 
   {#if !hasApiKey()}
-    <div class="glass mt-4 p-5 !rounded-2xl border-yellow-400/30 bg-yellow-400/[0.07]">
-      <p class="text-lg font-semibold">Falta la API key de TMDB</p>
-      <p class="mt-1 text-[15px] text-muted leading-relaxed">
-        Define <code class="rounded bg-black/10 dark:bg-white/10 px-1.5 py-0.5 text-[0.85em]">PUBLIC_TMDB_API_KEY</code>
-        en un archivo <code class="rounded bg-black/10 dark:bg-white/10 px-1.5 py-0.5 text-[0.85em]">.env</code> y recompila.
-      </p>
-    </div>
+    <div class="mt-5"><MissingKey /></div>
   {/if}
 
-  <section class="mt-5">
+  <section class="mt-6">
     {#if searching}
-      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-x-3 gap-y-5">
-        {#each Array(7) as _, i (i)}
-          <div class="skeleton aspect-[2/3] rounded-2xl"></div>
+      <div class={grid}>
+        {#each Array(8) as _, i (i)}
+          <div class="skeleton aspect-[2/3] rounded-xl"></div>
         {/each}
       </div>
     {:else if searchError}
-      <div class="flex flex-col items-center gap-3.5 py-12 text-center">
+      <div class="flex flex-col items-center gap-4 py-12 text-center">
         <p class="text-muted">{searchError}</p>
-        <button class="btn-glass" onclick={runSearch}>Reintentar</button>
+        <button type="button" class="glass-btn" onclick={runSearch}>Reintentar</button>
       </div>
     {:else if results.length > 0}
-      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-x-3 gap-y-5">
+      <div class={grid}>
         {#each results as item (item.mediaType + item.id)}
-          <PosterCard {item} width={0} />
+          <PosterCard {item} fill />
         {/each}
       </div>
     {:else if searched}
-      <div class="py-12 text-center text-muted">Sin resultados para “{query.trim()}”.</div>
+      <p class="py-12 text-center text-muted">Sin resultados para “{query.trim()}”.</p>
     {:else if hasApiKey()}
-      <div class="flex flex-col items-center gap-2.5 py-16 text-center text-muted">
+      <div class="flex flex-col items-center gap-2 py-16 text-center text-muted">
         <Icon name="search" size={40} />
-        <p class="text-lg font-semibold text-content">Busca cualquier título</p>
-        <p>Escribe arriba para encontrar películas, series y documentales.</p>
+        <p class="mt-1 text-lg font-semibold text-content">Busca cualquier título</p>
+        <p class="max-w-xs">Encuentra películas, series y documentales, y guárdalos como pendientes o vistos.</p>
       </div>
     {/if}
   </section>

@@ -2,7 +2,7 @@
   import Icon from './Icon.svelte';
 
   /**
-   * Renders a glass dropdown that replaces the native select.
+   * Renders a filter chip that opens a glass popover menu, in place of the native select.
    *
    * @param value - The selected value, bindable.
    * @param options - The choices, each with a value and a label.
@@ -22,8 +22,7 @@
 
   const selected = $derived(options.find((o) => o.value === value));
 
-  // El menú se posiciona como `fixed` para no quedar recortado por el
-  // contenedor de filtros (h-scroll → overflow oculto).
+  // The menu is `fixed` so the scrolling filter row (overflow hidden) does not clip it.
   function reposition() {
     if (!btn) return;
     const r = btn.getBoundingClientRect();
@@ -46,11 +45,14 @@
     if (e.key === 'Escape') open = false;
   }
 
-  // Reposiciona al abrir y cierra al hacer scroll en cualquier contenedor.
+  // Position on open; a scroll anywhere else closes it.
   $effect(() => {
     if (!open) return;
     reposition();
-    const close = () => (open = false);
+    // Scrolling the long menu itself must not close it.
+    const close = (e: Event) => {
+      if (!menu?.contains(e.target as Node)) open = false;
+    };
     document.addEventListener('scroll', close, true);
     return () => document.removeEventListener('scroll', close, true);
   });
@@ -61,8 +63,7 @@
 <button
   bind:this={btn}
   type="button"
-  class="chip cursor-pointer !pr-2.5 shrink-0"
-  class:is-active={open}
+  class="chip !pr-2.5"
   aria-haspopup="listbox"
   aria-expanded={open}
   aria-label={ariaLabel}
@@ -77,23 +78,13 @@
 {#if open}
   <div
     bind:this={menu}
-    class="fixed z-[200] max-h-72 overflow-y-auto no-scrollbar
-           glass !rounded-2xl p-1.5 origin-top animate-scale-in"
-    style="top:{pos.top}px; left:{pos.left}px; min-width:max({pos.minWidth}px, 11rem)"
+    class="glass-popover fixed z-[200] max-h-72 overflow-y-auto no-scrollbar"
+    style="top:{pos.top}px; left:{pos.left}px; min-width:max({pos.minWidth}px, 12rem)"
     role="listbox"
     aria-label={ariaLabel}
   >
     {#each options as o (o.value)}
-      <button
-        type="button"
-        role="option"
-        aria-selected={o.value === value}
-        class="flex w-full items-center justify-between gap-4 rounded-xl px-3 py-2 text-left text-[15px] font-medium transition-colors
-               {o.value === value
-                 ? 'text-accent bg-accent/10'
-                 : 'text-content hover:bg-black/[0.05] dark:hover:bg-white/[0.07]'}"
-        onclick={() => choose(o.value)}
-      >
+      <button type="button" role="option" aria-selected={o.value === value} class="glass-popover__item" onclick={() => choose(o.value)}>
         <span class="whitespace-nowrap">{o.label}</span>
         {#if o.value === value}<Icon name="check" size={16} />{/if}
       </button>

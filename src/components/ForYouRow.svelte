@@ -37,18 +37,18 @@
 </script>
 
 {#if $watchedTitles.length === 0}
-  <section class="my-7 animate-fade-up">
-    <div class="glass !rounded-3xl p-5 flex items-start gap-4">
+  <section class="mb-8 animate-fade-up">
+    <div class="rounded-2xl bg-surface p-5 flex items-start gap-4">
       <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent/10 text-accent">
         <Icon name="sparkles" size={22} />
       </span>
       <div>
-        <p class="text-lg font-semibold tracking-tight">Recomendaciones para ti</p>
+        <p class="text-[17px] font-semibold">Recomendaciones para ti</p>
         <p class="mt-1 text-[15px] text-muted leading-relaxed">
-          Marca como vistas las películas y series que ya conoces y valóralas con estrellas: aquí
-          aparecerán títulos elegidos según tus gustos.
+          Marca como vistas las películas y series que ya conoces y valóralas: aquí aparecerán
+          títulos elegidos según tus gustos.
         </p>
-        <button class="mt-3 text-[15px] font-semibold text-accent active:opacity-60" onclick={() => openLibrary('watched')}>
+        <button type="button" class="mt-2 text-[15px] font-semibold text-accent active:opacity-60" onclick={() => openLibrary('watched')}>
           Ir a Vistas
         </button>
       </div>
@@ -57,11 +57,11 @@
 {:else if loading}
   <Carousel title="Para ti">
     {#each Array(6) as _, i (i)}
-      <div style="width:132px"><div class="skeleton aspect-[2/3] rounded-2xl"></div></div>
+      <div class="w-[8.25rem] sm:w-[9.5rem]"><div class="skeleton aspect-[2/3] rounded-xl"></div></div>
     {/each}
   </Carousel>
 {:else if visible.length > 0}
-  <Carousel title="Para ti" subtitle="según lo que has visto">
+  <Carousel title="Para ti">
     {#each visible as r (r.item.mediaType + r.item.id)}
       <PosterCard item={r.item} caption={r.reason} />
     {/each}

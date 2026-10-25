@@ -25,7 +25,7 @@ export function openLibrary(segment: TitleStatus) {
   activeTab.set('library');
 }
 
-/** Whether the settings and backup sheet is open; it opens from the top navigation. */
+/** Whether the settings and backup sheet is open; it opens from the button in each tab header. */
 export const settingsOpen = writable<boolean>(false);
 
 /** The title the detail view shows. */
@@ -77,7 +77,7 @@ export function onHistoryBack() {
 export const titleSheetTarget = writable<MediaSummary | null>(null);
 
 /**
- * Opens the title sheet (status, rating, watched date, remove).
+ * Opens the title sheet (status, rating, remove).
  *
  * @param s - The title.
  */
@@ -138,14 +138,6 @@ theme.subscribe((t) => {
     }
   }
 });
-
-/** Switches between light and dark, resolving `system` to the scheme on screen first. */
-export function toggleTheme() {
-  theme.update((t) => {
-    const isDark = t === 'dark' || (t === 'system' && systemPrefersDark());
-    return isDark ? 'light' : 'dark';
-  });
-}
 
 /** An optional button in a toast, such as "Deshacer". */
 export interface ToastAction {

@@ -1,390 +1,158 @@
 # DESIGN.md
 
-Sistema de diseño para una aplicación con estética **Apple** (lenguaje *Human Interface* / *Liquid Glass*), apoyada en **glassmorphism** y construida con **Tailwind CSS**. Sirve como única fuente de verdad para tipografía, color, profundidad, movimiento y componentes.
+Sistema de diseño de Cortes TV: estética **Apple TV** con el material **Liquid Glass**, construido con Tailwind CSS y los componentes de la skill `liquid-glass` (`.agents/skills/liquid-glass/`). Es la única fuente de verdad para tipografía, color, vidrio, movimiento y componentes.
 
 ---
 
 ## 1. Principios
 
-1. **Claridad.** El contenido manda; la interfaz desaparece. Negativos generosos, jerarquía tipográfica nítida, nada decorativo sin función.
-2. **Deferencia.** El cromo de la UI es traslúcido y secundario: deja respirar al contenido. El vidrio toma color de lo que tiene detrás, no al revés.
-3. **Profundidad.** Capas translúcidas, desenfoque y sombras suaves comunican jerarquía espacial en lugar de bordes duros.
-4. **Consistencia.** Un único set de tokens (radios, sombras, espaciado, color) reutilizado en todo. Si algo necesita un valor nuevo, primero se evalúa si encaja en la escala.
-5. **Movimiento con intención.** Animaciones tipo *spring*, cortas y suaves. Nunca lineales ni abruptas. El movimiento refuerza causa-efecto, no entretiene.
+1. **Dos capas.** El contenido (pósteres, textos, listas) es opaco. El vidrio es solo para el cromo que flota encima: barra de pestañas, botones flotantes, hojas, menús y avisos.
+2. **Nada de vidrio sobre vidrio.** Los controles dentro de una superficie de vidrio usan rellenos planos (`glass-btn--plain`, `glass-segmented--plain`, `--glass-fill`).
+3. **Un solo layout.** Lo mismo en iPhone y en escritorio: título grande por pestaña, botón de ajustes arriba a la derecha y barra de pestañas flotante abajo. Solo cambian el número de columnas y los márgenes.
+4. **Máximo tres superficies de vidrio** visibles a la vez en móvil.
+5. **Accesible por defecto.** Cada componente de vidrio tiene alternativa para transparencia reducida, contraste alto, movimiento reducido y colores forzados.
 
 ---
 
 ## 2. Tipografía
 
-Apple usa **SF Pro**. En web no se puede redistribuir, así que se usa el *system font stack* (que ya resuelve a SF en dispositivos Apple) con buenas alternativas para el resto.
+Stack del sistema: en dispositivos Apple resuelve a **SF Pro**; la fuente no se redistribuye.
 
 ```css
-/* Stack tipográfico */
-font-family:
-  -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
-  "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Segoe UI", sans-serif;
 ```
 
-> Alternativa web libre muy cercana: **Inter** (texto) o **General Sans** / **Geist** (display). Si necesitas un look fiel, valora una licencia de SF o usa el stack del sistema sin webfont.
+| Rol | Clase | Uso |
+|---|---|---|
+| Título grande | `.large-title` (34px, bold, tracking ajustado) | Cabecera de cada pestaña |
+| Título de detalle | `text-[2rem] sm:text-5xl font-bold` | Nombre del título en el detalle |
+| Sección | `.section-title` (20px, bold) | Filas y bloques ("Para ti", "Reparto") |
+| Cuerpo | `text-base leading-relaxed` | Sinopsis |
+| Secundario | `text-[15px] text-muted` | Subtítulos, metadatos |
+| Pie | `text-[13px]` / `text-xs text-muted` | Año y tipo bajo el póster, etiquetas de grupo |
 
-**Reglas de oro**
-
-- **Pesos:** usa solo 3–4 (`400` regular, `500` medium, `600` semibold, `700` bold). El medium/semibold es la firma de Apple.
-- **Tracking negativo en títulos.** Cuanto más grande el texto, más apretado: `tracking-tight` / `tracking-tighter` en headings; tracking normal o ligeramente positivo en *captions*.
-- **Interlineado holgado** en cuerpo (`leading-relaxed`), ajustado en titulares (`leading-tight`).
-- **Tamaños en `rem`**, no en `px`, para respetar accesibilidad.
-
-### Escala tipográfica
-
-| Rol            | Clase Tailwind                                | Uso                          |
-|----------------|-----------------------------------------------|------------------------------|
-| Large Title    | `text-5xl font-bold tracking-tighter`         | Hero, pantalla de bienvenida |
-| Title 1        | `text-4xl font-bold tracking-tight`           | Cabeceras de sección         |
-| Title 2        | `text-3xl font-semibold tracking-tight`       | Subsecciones                 |
-| Title 3        | `text-2xl font-semibold tracking-tight`       | Tarjetas, módulos            |
-| Headline       | `text-lg font-semibold`                       | Énfasis de fila/lista        |
-| Body           | `text-base font-normal leading-relaxed`       | Texto principal              |
-| Callout        | `text-[15px] font-normal`                     | Texto secundario             |
-| Subheadline    | `text-sm font-normal text-neutral-500`        | Apoyo                        |
-| Footnote       | `text-xs font-normal text-neutral-500`        | Notas                        |
-| Caption        | `text-[11px] font-medium uppercase tracking-wide text-neutral-400` | Etiquetas |
+Peso mínimo 500 sobre vidrio; nunca 300 o menos. Los campos de texto usan 16px para que iOS no haga zoom al enfocarlos.
 
 ---
 
 ## 3. Color
 
-Paleta neutra y luminosa con **un acento vibrante**. El acento se reserva para acción primaria; el resto es escala de grises. Evita degradados morados sobre blanco y cualquier cliché "AI".
+Colores de sistema de iOS, como variables HSL en `src/styles/global.css` y mapeados en `tailwind.config.js`.
 
-### Tokens (CSS variables)
+| Token | Claro | Oscuro | Uso |
+|---|---|---|---|
+| `accent` | `#007AFF` | `#0A84FF` | Acción principal, pestaña activa, Pendiente |
+| `success` | `#34C759` | `#30D158` | Estado Vista |
+| `danger` | `#FF3B30` | `#FF453A` | Quitar, errores |
+| `bg` | `#F2F2F7` | `#000000` | Fondo de la app |
+| `surface` | `#FFFFFF` | `#1C1C1E` | Tarjetas opacas (avisos) |
+| `content` / `muted` | `#1D1D1F` / `#6E6E73` | `#F5F5F7` / `#98989D` | Texto |
+| `fill` | gris al 12% | gris al 18% | Campos, chips, listas agrupadas, placeholders |
 
-```css
-:root {
-  /* Acento (System Blue de Apple) */
-  --accent: 211 100% 50%;        /* #007AFF */
-  --accent-hover: 211 100% 45%;
+Un solo acento por pantalla. El verde es semántico (Vista), no un segundo acento. El estado nunca depende solo del color: siempre hay icono y texto.
 
-  /* Superficies (modo claro) */
-  --bg: 0 0% 96%;                /* fondo de app, gris cálido */
-  --surface: 0 0% 100%;          /* tarjetas sólidas */
-  --text: 0 0% 9%;
-  --text-muted: 0 0% 45%;
-  --border: 0 0% 0% / 0.08;
+El detalle de un título es **siempre oscuro** (lleva la clase `dark`), como en Apple TV.
 
-  /* Vidrio */
-  --glass-bg: 255 255 255 / 0.55;
-  --glass-border: 255 255 255 / 0.6;
-}
-
-.dark {
-  --bg: 0 0% 7%;
-  --surface: 0 0% 12%;
-  --text: 0 0% 98%;
-  --text-muted: 0 0% 60%;
-  --border: 255 255 255 / 0.1;
-
-  --glass-bg: 30 30 30 / 0.5;
-  --glass-border: 255 255 255 / 0.12;
-}
-```
-
-### Colores de sistema Apple (acentos alternativos)
-
-| Nombre  | Hex        | Nombre  | Hex        |
-|---------|------------|---------|------------|
-| Blue    | `#007AFF`  | Red     | `#FF3B30`  |
-| Green   | `#34C759`  | Orange  | `#FF9500`  |
-| Indigo  | `#5856D6`  | Pink    | `#FF2D55`  |
-| Teal    | `#30B0C7`  | Yellow  | `#FFCC00`  |
-
-**Regla:** un solo acento dominante por pantalla. Los demás solo para estados semánticos (error = red, éxito = green).
+**Fondo atmosférico** (`.atmosphere`): tres degradados radiales muy suaves fijos tras la app, para que el vidrio tenga color que recoger. Sin capas con `blur`, que en iOS cuestan memoria.
 
 ---
 
-## 4. Glassmorphism (Liquid Glass)
+## 4. Liquid Glass
 
-El efecto vidrio es la firma visual. Se construye con **fondo semitransparente + `backdrop-blur` + borde claro sutil + sombra suave**, y *siempre* sobre un fondo con contenido o color (el vidrio sobre blanco plano no se ve).
+`src/styles/glass.css` porta los snippets de la skill. Diferencias: el esquema sigue al tema de la app (clase `dark`) y no a `prefers-color-scheme`; no se carga `liquid-glass.js` (Svelte mueve los indicadores y la refracción no corre en táctil); hojas, menús y avisos usan un tinte denso para que el texto largo se lea sobre pósteres.
 
-### Receta base
+**El material:** tinte (`--glass-tint`), escarcha ligera (`blur(8px) saturate(180%)`), dos brillos especulares interiores (`--glass-shadow-rim`) y una sombra suave. Nunca blur de 20px o más (eso es vidrio esmerilado, no Liquid Glass), nunca `will-change: backdrop-filter`, nunca animar `backdrop-filter`.
 
-```html
-<div class="
-  bg-white/55 dark:bg-neutral-900/50
-  backdrop-blur-xl backdrop-saturate-150
-  border border-white/60 dark:border-white/10
-  shadow-[0_8px_32px_rgba(0,0,0,0.08)]
-  rounded-3xl
-">
-  <!-- contenido -->
-</div>
-```
+| Token | Claro | Oscuro |
+|---|---|---|
+| `--glass-tint-rgb` / `--glass-tint` | blanco / 0.55 | `34 34 38` / 0.5 |
+| `--glass-tint-dense` (hojas, menús, avisos) | 0.9 | 0.88 |
+| `--glass-rim` | 0.9 | 0.32 |
+| `--glass-easing-spring` | muelle `linear()` de 600ms | igual |
 
-**Anatomía del vidrio**
+Los tokens derivados (`--glass-bg`, `--glass-shadow-rim`...) se recalculan en cada componente, así que basta con sobrescribir un primitivo en un elemento.
 
-- **Transparencia:** entre `40%` y `65%` de opacidad (`/40`–`/65`). Demasiado opaco pierde el efecto; demasiado transparente pierde legibilidad.
-- **Blur:** `backdrop-blur-xl` (24px) para paneles, `backdrop-blur-md` para barras finas. Acompaña con `backdrop-saturate-150` para que los colores de detrás "florezcan" (clave en el look Apple).
-- **Borde luminoso:** borde blanco a `60%` arriba; en oscuro un blanco al `10–12%`. Simula el canto biselado del cristal.
-- **Sombra:** difusa y baja opacidad. La profundidad viene del blur, no de sombras duras.
-- **Radios grandes:** `rounded-2xl`/`rounded-3xl`. El vidrio Apple nunca tiene esquinas vivas.
-
-> Requiere un fondo interesante detrás: un degradado de malla, una foto difuminada o blobs de color. Añade una capa de **fondo atmosférico** a la app para que el vidrio tenga algo que refractar.
-
-### Fondo recomendado para que luzca el vidrio
-
-```html
-<div class="fixed inset-0 -z-10 bg-neutral-100 dark:bg-neutral-950">
-  <div class="absolute -top-32 -left-20 h-96 w-96 rounded-full
-              bg-blue-400/40 blur-3xl"></div>
-  <div class="absolute top-40 right-0 h-96 w-96 rounded-full
-              bg-pink-400/30 blur-3xl"></div>
-  <div class="absolute bottom-0 left-1/3 h-96 w-96 rounded-full
-              bg-indigo-400/30 blur-3xl"></div>
-</div>
-```
+`glass.css` se importa entre `components` y `utilities` de Tailwind: una utilidad (`fixed`, `hidden`, `pr-5`) siempre gana a un componente de vidrio.
 
 ---
 
-## 5. Espaciado y layout
+## 5. Componentes
 
-- **Base 4px** (la escala nativa de Tailwind ya lo es). Apóyate en `2 / 3 / 4 / 6 / 8 / 12 / 16 / 24`.
-- **Aire generoso.** Padding interno mínimo `p-4` en tarjetas pequeñas, `p-6`–`p-8` en paneles.
-- **Ancho de lectura** del contenido principal: `max-w-prose` o `max-w-2xl`. Layouts amplios con `max-w-5xl`/`max-w-7xl` centrados.
-- **Ritmo vertical** entre secciones: `space-y-6` dentro de módulos, `space-y-12`–`space-y-16` entre bloques mayores.
-- **Toque mínimo 44×44px** en cualquier control interactivo (accesibilidad táctil Apple). Usa `min-h-11 min-w-11`.
+### Vidrio (capa de cromo)
 
----
+| Clase | Componente | Dónde |
+|---|---|---|
+| `.glass-tabs` + `.glass-tabs__tab` + `.glass-indicator` | Barra de pestañas con indicador deslizante | `TabBar.svelte` |
+| `.glass-btn` | Botón; variantes `--icon`, `--sm`, `--prominent` (acento), `--success` (verde), `--plain` (dentro de vidrio), `--danger` | Cabeceras, detalle, hojas |
+| `.glass-segmented` + `__option` + `.glass-indicator` | Control segmentado; `--plain` dentro de hojas | Biblioteca, Ajustes |
+| `.glass-search` + `__input` | Buscador en píldora, fijo al hacer scroll | Buscar |
+| `.glass-popover` + `__item` | Menú desplegable | `Select.svelte` |
+| `.glass-toast` | Aviso flotante sobre la barra de pestañas | `Toast.svelte` |
+| `.glass-sheet` | Hoja: flota abajo en móvil, centrada en escritorio | `Sheet.svelte`, login |
 
-## 6. Radios, bordes y elevación
+El indicador deslizante recibe `--count` (número de opciones) y `--index` (opción activa) por estilo en línea. La selección vive en ARIA: `aria-current="page"` en pestañas, `role="radio"` y `aria-checked` en segmentados.
 
-```js
-// Radios
-rounded-lg   // 8px: inputs, chips
-rounded-xl   // 12px: botones
-rounded-2xl  // 16px: tarjetas
-rounded-3xl  // 24px: paneles, modales, hojas
-rounded-full // pills, avatares, FAB
-```
+Los controles de vidrio **crecen** al pulsarlos (`--glass-press-scale: 1.08`); nunca encogen.
 
-**Sombras (sistema de elevación)**
+### Contenido (opaco)
 
-| Nivel | Token | Tailwind | Uso |
-|-------|-------|----------|-----|
-| 0 | plano | `shadow-none` | Sobre superficie |
-| 1 | sutil | `shadow-[0_1px_3px_rgba(0,0,0,0.06)]` | Tarjetas en reposo |
-| 2 | medio | `shadow-[0_8px_32px_rgba(0,0,0,0.08)]` | Vidrio, popovers |
-| 3 | alto | `shadow-[0_20px_60px_rgba(0,0,0,0.15)]` | Modales, hojas |
-
-Sombras siempre suaves, frías y de baja opacidad. Nunca negras al 50%.
-
----
-
-## 7. Movimiento
-
-- **Curvas tipo Apple:** `cubic-bezier(0.32, 0.72, 0, 1)` para entradas/salidas suaves. Para micro-interacciones, *spring*.
-- **Duraciones:** `150ms` hover, `250–350ms` transiciones de capa, `400–500ms` aparición de modales/hojas.
-- **Hover/press:** escala sutil `hover:scale-[1.02] active:scale-[0.98]` + `transition-transform`.
-- **Entrada de pantalla:** *fade + slide-up* con `animation-delay` escalonado (10–60ms entre elementos) para un *staggered reveal*.
-- **Respeta `prefers-reduced-motion`**: desactiva transforms y deja solo opacidad.
-
-```css
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-}
-```
-
----
-
-## 8. Configuración de Tailwind
-
-`tailwind.config.js`:
-
-```js
-/** @type {import('tailwindcss').Config} */
-export default {
-  darkMode: 'class',
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx,vue}'],
-  theme: {
-    extend: {
-      colors: {
-        accent: 'hsl(var(--accent) / <alpha-value>)',
-        'accent-hover': 'hsl(var(--accent-hover) / <alpha-value>)',
-        surface: 'hsl(var(--surface) / <alpha-value>)',
-      },
-      fontFamily: {
-        sans: [
-          '-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"',
-          '"SF Pro Display"', '"Segoe UI"', 'system-ui', 'sans-serif',
-        ],
-      },
-      borderRadius: { '4xl': '2rem' },
-      backdropBlur: { xs: '2px' },
-      transitionTimingFunction: {
-        'apple': 'cubic-bezier(0.32, 0.72, 0, 1)',
-      },
-      boxShadow: {
-        'glass': '0 8px 32px rgba(0,0,0,0.08)',
-        'sheet': '0 20px 60px rgba(0,0,0,0.15)',
-      },
-      keyframes: {
-        'fade-up': {
-          '0%':   { opacity: '0', transform: 'translateY(12px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-      },
-      animation: {
-        'fade-up': 'fade-up 0.5s cubic-bezier(0.32,0.72,0,1) both',
-      },
-    },
-  },
-  plugins: [],
-}
-```
-
-Y una clase utilitaria reutilizable en tu CSS global:
-
-```css
-@layer components {
-  .glass {
-    @apply bg-white/55 dark:bg-neutral-900/50
-           backdrop-blur-xl backdrop-saturate-150
-           border border-white/60 dark:border-white/10
-           shadow-glass rounded-3xl;
-  }
-}
-```
-
----
-
-## 9. Componentes de referencia
-
-### Botón primario
-
-```html
-<button class="inline-flex items-center justify-center gap-2
-  min-h-11 px-5 rounded-xl
-  bg-accent text-white font-semibold
-  shadow-[0_4px_14px_hsl(var(--accent)/0.4)]
-  transition-all duration-150 ease-apple
-  hover:bg-accent-hover hover:scale-[1.02]
-  active:scale-[0.98]
-  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50">
-  Continuar
-</button>
-```
-
-### Botón secundario (vidrio)
-
-```html
-<button class="glass min-h-11 px-5 !rounded-xl
-  font-medium text-neutral-800 dark:text-neutral-100
-  transition-transform duration-150 ease-apple
-  hover:scale-[1.02] active:scale-[0.98]">
-  Cancelar
-</button>
-```
-
-### Tarjeta
-
-```html
-<div class="glass p-6 animate-fade-up">
-  <h3 class="text-2xl font-semibold tracking-tight">Título</h3>
-  <p class="mt-2 text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
-    Contenido de la tarjeta con tipografía cómoda y aire suficiente.
-  </p>
-</div>
-```
-
-### Barra de navegación flotante
-
-```html
-<nav class="glass !rounded-2xl
-  fixed top-4 inset-x-4 z-50
-  flex items-center justify-between
-  h-14 px-5 backdrop-blur-md">
-  <span class="font-semibold tracking-tight">App</span>
-  <div class="flex items-center gap-6 text-sm text-neutral-600 dark:text-neutral-300">
-    <a class="hover:text-accent transition-colors" href="#">Inicio</a>
-    <a class="hover:text-accent transition-colors" href="#">Ajustes</a>
-  </div>
-</nav>
-```
-
-### Logo
-
-Inspirado en Apple TV, sin la manzana: un monograma **C** (anillo grueso abierto a la derecha) seguido de **tv** en minúsculas, todo dibujado con trazados vectoriales para no depender de ninguna fuente.
-
-- **Icono de app** (`public/icons/icon.svg`): letras blancas con un degradado muy suave sobre negro con degradado vertical (`#2c2c2e` a `#050506`). Sin esquinas redondeadas: iOS y los iconos *maskable* las recortan. Los PNG se generan con `node scripts/generate-icons.mjs`.
-- **Logotipo** (`Logo.svelte`): las mismas formas en `currentColor`, a 20px en la barra superior, 26px en el login y 32px en la pantalla de carga.
-- No se usa la manzana ni ninguna forma registrada de Apple.
-
-### Barra de pestañas inferior (móvil)
-
-Clase `.glass-tabbar` en `src/styles/global.css`. Píldora de vidrio fija abajo (`.bottom-safe`), tres pestañas con icono y etiqueta, y un indicador (`.glass-tabbar__indicator`) que se desliza con `ease-apple`. La pestaña activa usa el acento, icono relleno y peso semibold, de modo que no depende solo del color. Solo por debajo de `sm`; en escritorio la navegación vive en la barra superior.
-
-### Control segmentado
-
-Clase `.segmented` con un `.segmented__thumb` que se desliza bajo el botón con `aria-pressed="true"`. Es capa de contenido: relleno plano, sin vidrio.
+- **Póster** (`PosterCard.svelte`): `rounded-xl`, `shadow-poster`, título y "año · tipo" debajo. El botón de la esquina es un círculo sólido (negro al 55%, acento si está pendiente, verde si está vista), nunca vidrio: una fila tendría decenas de desenfoques.
+- **Fila** (`Carousel.svelte`): sangra hasta los bordes de la pantalla (`.h-scroll` lee `--page-x` de `.page-x`) y ajusta al margen. Con ratón aparecen dos botones de desplazamiento en la cabecera de la fila.
+- **Chip** (`.chip`): relleno `fill`; activo en color de texto invertido (`aria-pressed="true"`).
+- **Campo** (`.field`): relleno `fill`, anillo de acento al enfocar.
+- **Lista agrupada** (`.group-list`, `.group-label`): estilo Ajustes de iOS dentro de hojas.
+- **Aviso opaco** (`MissingKey.svelte`, recomendaciones vacías): `bg-surface rounded-2xl`.
 
 ### Estados de la biblioteca
 
 | Estado | Color | Icono |
 |---|---|---|
-| Pendiente | acento (`bg-accent`) | `bookmark` / `bookmark-fill` |
-| Vista | verde de sistema (`bg-green-600`) | `check-circle` / `check-circle-fill` |
+| Pendiente | acento (`glass-btn--prominent`, `bg-accent`) | `bookmark` / `bookmark-fill` |
+| Vista | verde (`glass-btn--success`, `bg-success`) | `check-circle` / `check-circle-fill` |
 
-El verde es un color semántico de estado (éxito), no un segundo acento: solo se usa para "Vista". Cada estado lleva siempre icono y texto además del color.
+### Logo
 
-### Modal / hoja
+"**Ctv**" en **SF Pro Display Bold**, convertido a trazado para que se vea igual en cualquier dispositivo.
 
-```html
-<div class="fixed inset-0 z-50 grid place-items-center
-            bg-black/20 backdrop-blur-sm">
-  <div class="glass !rounded-4xl shadow-sheet p-8 w-full max-w-md
-              animate-fade-up">
-    <h2 class="text-3xl font-bold tracking-tight">Confirmar</h2>
-    <p class="mt-3 text-neutral-600 dark:text-neutral-300">¿Seguro que quieres continuar?</p>
-    <div class="mt-8 flex gap-3 justify-end">
-      <button class="glass !rounded-xl min-h-11 px-5 font-medium">Cancelar</button>
-      <button class="bg-accent text-white font-semibold min-h-11 px-5 rounded-xl">Aceptar</button>
-    </div>
-  </div>
-</div>
-```
-
-### Campo de texto
-
-```html
-<input type="text" placeholder="Buscar"
-  class="w-full min-h-11 px-4 rounded-xl
-  bg-white/70 dark:bg-neutral-800/60 backdrop-blur
-  border border-black/5 dark:border-white/10
-  text-base placeholder:text-neutral-400
-  focus:outline-none focus:ring-2 focus:ring-accent/50
-  transition" />
-```
+- **Icono de app** (`public/icons/icon.svg`): letras blancas con un degradado muy suave sobre negro con degradado vertical (`#2c2c2e` a `#050506`), a sangre (iOS y los iconos *maskable* redondean las esquinas). Los PNG se generan con `node scripts/generate-icons.mjs`.
+- **Logotipo** (`Logo.svelte`): el mismo trazado en `currentColor`; 30px en Inicio, 56px en el login y 40px en la pantalla de carga.
+- Sin la manzana ni ninguna forma registrada de Apple.
 
 ---
 
-## 10. Accesibilidad
+## 6. Espaciado y layout
 
-- **Contraste:** el vidrio reduce contraste. Verifica AA (4.5:1) del texto sobre el panel real, no sobre el fondo ideal. Si falla, sube la opacidad del vidrio o añade una capa sólida tras el texto.
-- **Foco visible siempre:** `focus-visible:ring-2 ring-accent/50`. Nunca elimines el outline sin sustituto.
-- **Objetivos táctiles** ≥ 44px (`min-h-11`).
-- **`prefers-reduced-motion`** y **`prefers-color-scheme`** respetados.
-- **Texto escalable:** tamaños en `rem`; no fijes alturas que rompan con *Dynamic Type* / zoom.
-- **No depender solo del color** para transmitir estado (añade icono o texto).
-- **Vidrio con alternativas:** `.glass`, `.glass-bar` y `.glass-tabbar` pasan a superficie sólida con `prefers-reduced-transparency`, `prefers-contrast: more` y `forced-colors` (`global.css`).
+- Margen lateral de página `.page-x`: 16px en móvil, 24px desde `sm`, 40px desde `lg`. Ancho máximo `max-w-7xl` (el detalle, `max-w-4xl`).
+- Rejillas de pósteres: 3 columnas en móvil, 4 en `sm`, 5 en `md`, 6 en `lg`.
+- Áreas seguras: `--safe-top` y `--safe-bottom`; la barra de pestañas se coloca con `--tabbar-bottom` y el contenido deja `--tabbar-room` debajo.
+- Objetivo táctil mínimo 44px (`--glass-target`).
+- Radios concéntricos: radio interior = radio exterior menos el padding entre ambos. Píldoras para controles, `rounded-xl` para pósteres, 34px para hojas.
 
 ---
 
-## 11. Checklist antes de enviar
+## 7. Movimiento
 
-- [ ] ¿Hay un fondo atmosférico detrás del vidrio para que refracte?
-- [ ] ¿Un único acento dominante por pantalla?
-- [ ] ¿Pesos tipográficos limitados (≤4) y tracking negativo en títulos?
-- [ ] ¿Radios grandes y consistentes con la escala?
-- [ ] ¿Sombras suaves y frías, sin negros duros?
-- [ ] ¿Transiciones con curva `ease-apple` y press/hover sutil?
-- [ ] ¿Contraste AA verificado sobre el panel translúcido real?
-- [ ] ¿Foco visible y objetivos táctiles ≥44px?
-- [ ] ¿Funciona en claro y oscuro?
-- [ ] ¿`prefers-reduced-motion` respetado?
+- **Muelle** (`--glass-easing-spring`, 600ms) para indicadores, botones, menús y avisos.
+- **Suave** (`ease-apple`, `cubic-bezier(0.16, 1, 0.3, 1)`) para entradas de pantalla (`animate-fade-in`, `animate-fade-up`) y la subida de las hojas.
+- `hover:` solo existe en dispositivos con puntero (`hoverOnlyWhenSupported`), así que un toque nunca deja un estado hover pegado.
+- `prefers-reduced-motion` anula animaciones y transiciones, y el crecimiento al pulsar.
+
+---
+
+## 8. Accesibilidad
+
+- Contraste AA sobre el panel real; el tinte denso de hojas y avisos existe para eso.
+- Foco visible: doble anillo negro y blanco en los controles de vidrio; anillo de acento en el buscador y en el resto de la página.
+- Alternativas obligatorias en `glass.css`: `prefers-reduced-transparency` y `prefers-contrast: more` pasan a fondo sólido (`--glass-solid-bg`), `forced-colors` usa los colores del sistema, `prefers-reduced-motion` quita el movimiento.
+- Mientras el detalle o una hoja están abiertos, la página de detrás no hace scroll (`html.is-locked`).
+
+---
+
+## 9. Checklist
+
+- [ ] ¿El vidrio está solo en el cromo y nunca sobre otro vidrio?
+- [ ] ¿Como mucho tres superficies de vidrio a la vez en móvil?
+- [ ] ¿Un único acento por pantalla y estados con icono y texto?
+- [ ] ¿Funciona en claro y oscuro, en iPhone y en escritorio?
+- [ ] ¿Respeta las áreas seguras y deja sitio a la barra de pestañas?
+- [ ] ¿Las cuatro alternativas de accesibilidad siguen cubriendo el componente nuevo?

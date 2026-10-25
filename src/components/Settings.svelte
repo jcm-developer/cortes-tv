@@ -65,81 +65,87 @@
   ];
 </script>
 
-<div class="flex flex-col gap-5">
-  <div class="flex gap-3">
-    <div class="flex-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] p-4">
-      <p class="text-3xl font-bold tracking-tight">{$pendingTitles.length}</p>
+<div class="flex flex-col gap-6">
+  <div class="grid grid-cols-2 gap-2.5">
+    <div class="rounded-2xl bg-fill p-4">
+      <p class="text-3xl font-bold tracking-tight tabular-nums">{$pendingTitles.length}</p>
       <p class="text-sm text-muted">pendientes</p>
     </div>
-    <div class="flex-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] p-4">
-      <p class="text-3xl font-bold tracking-tight">{$watchedTitles.length}</p>
+    <div class="rounded-2xl bg-fill p-4">
+      <p class="text-3xl font-bold tracking-tight tabular-nums">{$watchedTitles.length}</p>
       <p class="text-sm text-muted">vistas</p>
     </div>
   </div>
 
   {#if cloud && $cloudUser}
-    <div>
-      <p class="text-[11px] font-medium uppercase tracking-wide text-muted mb-2">Cuenta</p>
-      <div class="rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] p-4 flex items-center gap-3">
-        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent/10 text-accent">
-          <Icon name="cloud" size={20} />
-        </span>
-        <div class="flex-1 min-w-0">
-          <p class="font-medium truncate">{$cloudUser.email}</p>
-          <p class="text-sm {$syncState.status === 'error' ? 'text-red-500' : 'text-muted'}">
-            {syncLabel}{#if $syncState.pending > 0}<span> · {$syncState.pending} pendientes de subir</span>{/if}
-          </p>
+    <section>
+      <p class="group-label">Cuenta</p>
+      <div class="group-list">
+        <div class="flex items-center gap-3 p-3.5">
+          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent/15 text-accent">
+            <Icon name="cloud" size={20} />
+          </span>
+          <div class="flex-1 min-w-0">
+            <p class="font-medium truncate">{$cloudUser.email}</p>
+            <p class="text-sm {$syncState.status === 'error' ? 'text-danger' : 'text-muted'}">
+              {syncLabel}{#if $syncState.pending > 0}<span> · {$syncState.pending} pendientes de subir</span>{/if}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="glass-btn glass-btn--plain glass-btn--sm glass-btn--icon shrink-0"
+            onclick={() => void syncNow()}
+            disabled={$syncState.status === 'syncing'}
+            aria-label="Sincronizar ahora"
+          >
+            <span class:animate-spin={$syncState.status === 'syncing'}><Icon name="refresh" size={18} /></span>
+          </button>
         </div>
-        <button
-          class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-muted hover:text-content active:scale-90 transition-transform disabled:opacity-40"
-          onclick={() => void syncNow()}
-          disabled={$syncState.status === 'syncing'}
-          aria-label="Sincronizar ahora"
-        >
-          <span class:animate-spin={$syncState.status === 'syncing'}><Icon name="refresh" size={20} /></span>
-        </button>
       </div>
-    </div>
+    </section>
   {/if}
 
-  <div>
-    <p class="text-[11px] font-medium uppercase tracking-wide text-muted mb-2">Apariencia</p>
-    <div class="flex gap-2">
+  <section>
+    <p class="group-label">Apariencia</p>
+    <div class="glass-segmented glass-segmented--plain w-full" role="radiogroup" aria-label="Tema">
+      <span class="glass-indicator" style="--count: {themes.length}; --index: {Math.max(0, themes.findIndex((t) => t.id === $theme))}" aria-hidden="true"></span>
       {#each themes as t (t.id)}
-        <button class="chip flex-1 justify-center" class:is-active={$theme === t.id} onclick={() => theme.set(t.id)}>
+        <button type="button" class="glass-segmented__option" role="radio" aria-checked={$theme === t.id} onclick={() => theme.set(t.id)}>
           {t.label}
         </button>
       {/each}
     </div>
-  </div>
+  </section>
 
-  <div>
-    <p class="text-[11px] font-medium uppercase tracking-wide text-muted mb-1.5">Copia de seguridad</p>
-    <p class="text-[15px] text-muted leading-relaxed mb-3">
-      {cloud
-        ? 'Tu biblioteca se sincroniza con tu cuenta. Exporta un JSON si quieres una copia propia.'
-        : 'Tu biblioteca se guarda en este dispositivo. Exporta un archivo JSON para conservarla o moverla a otro.'}
-      Puedes importar copias antiguas con listas: lo valorado o fechado pasa a Vistas y el resto a Pendientes.
-    </p>
-
-    <button class="btn-glass w-full" onclick={onExport}>
-      <Icon name="download" size={18} /> Exportar a JSON
-    </button>
-
-    <div class="flex items-center gap-2 my-3">
-      <span class="text-sm text-muted mr-0.5">Al importar:</span>
-      <button class="chip" class:is-active={importMode === 'merge'} onclick={() => (importMode = 'merge')}>Combinar</button>
-      <button class="chip" class:is-active={importMode === 'replace'} onclick={() => (importMode = 'replace')}>Reemplazar</button>
+  <section>
+    <p class="group-label">Copia de seguridad</p>
+    <div class="group-list">
+      <button type="button" class="flex items-center gap-3 p-3.5 text-left font-medium active:bg-fill" onclick={onExport}>
+        <Icon name="download" size={20} /> Exportar a JSON
+      </button>
+      <button type="button" class="flex items-center gap-3 p-3.5 text-left font-medium active:bg-fill" onclick={pickFile}>
+        <Icon name="upload" size={20} /> Importar desde JSON
+      </button>
+      <div class="flex items-center justify-between gap-3 p-3.5">
+        <span class="text-[15px] text-muted">Al importar</span>
+        <div class="glass-segmented glass-segmented--plain" role="radiogroup" aria-label="Modo de importación">
+          <span class="glass-indicator" style="--count: 2; --index: {importMode === 'merge' ? 0 : 1}" aria-hidden="true"></span>
+          <button type="button" class="glass-segmented__option min-h-8 px-3" role="radio" aria-checked={importMode === 'merge'} onclick={() => (importMode = 'merge')}>Combinar</button>
+          <button type="button" class="glass-segmented__option min-h-8 px-3" role="radio" aria-checked={importMode === 'replace'} onclick={() => (importMode = 'replace')}>Reemplazar</button>
+        </div>
+      </div>
     </div>
-
-    <button class="btn-glass w-full" onclick={pickFile}>
-      <Icon name="upload" size={18} /> Importar desde JSON
-    </button>
+    <p class="mt-2 px-1 text-[13px] text-muted leading-relaxed">
+      {cloud
+        ? 'Tu biblioteca se sincroniza con tu cuenta; el JSON es una copia propia.'
+        : 'Tu biblioteca se guarda en este dispositivo; exporta un JSON para conservarla o moverla.'}
+      Las copias antiguas con listas también se importan: lo valorado pasa a Vistas y el resto a Pendientes.
+    </p>
     <input bind:this={fileInput} type="file" accept="application/json,.json" onchange={onFile} hidden />
-  </div>
+  </section>
 
   {#if authRequired()}
-    <button class="btn-glass w-full" onclick={onLogout}>
+    <button type="button" class="glass-btn glass-btn--plain glass-btn--danger w-full" onclick={onLogout}>
       <Icon name="logout" size={18} /> Cerrar sesión
     </button>
   {/if}

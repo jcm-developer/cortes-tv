@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** Renders the full-screen detail of `detailTarget`: status, rating, synopsis, cast and similar titles. */
+  /** Renders the full-screen detail of `detailTarget`, always in the dark scheme: status, rating, synopsis, providers, cast and similar titles. */
   import Icon from './Icon.svelte';
   import Carousel from './Carousel.svelte';
   import PosterCard from './PosterCard.svelte';
@@ -47,7 +47,8 @@
   const backdrop = $derived(
     img(view?.backdropPath, ImageSize.backdropLarge) ?? img(view?.posterPath, ImageSize.posterLarge),
   );
-  const poster = $derived(img(view?.posterPath, ImageSize.poster));
+  // Phones show the portrait poster as the hero; wider screens the landscape backdrop.
+  const heroPortrait = $derived(img(view?.posterPath, ImageSize.posterLarge) ?? backdrop);
   const providers = $derived(detail?.providers ?? null);
   const providerGroups = $derived<{ label: string; items: WatchProvider[] }[]>(
     providers
@@ -86,88 +87,86 @@
     if (view) parts.push(mediaTypeLabel(view.mediaType));
     if (detail?.runtime) { const r = formatRuntime(detail.runtime); if (r) parts.push(r); }
     if (detail?.seasons) parts.push(`${detail.seasons} ${detail.seasons === 1 ? 'temporada' : 'temporadas'}`);
-    return parts.join('  ·  ');
+    return parts.join(' · ');
   }
 </script>
 
 {#if target}
-  <div class="fixed inset-0 z-[120] bg-bg animate-fade-in" role="dialog" aria-modal="true" aria-label={view?.title ?? 'Detalle'}>
-    <!-- Cabecera flotante -->
-    <div class="absolute top-safe inset-x-3 sm:inset-x-4 z-10 flex justify-between pointer-events-none">
-      <button class="pointer-events-auto grid h-10 w-10 place-items-center rounded-full text-white bg-black/40 backdrop-blur-xl border border-white/15 active:scale-90 transition-transform" onclick={closeDetail} aria-label="Cerrar">
-        <Icon name="chevron-left" size={24} />
-      </button>
-    </div>
+  <div class="dark fixed inset-0 z-[120] bg-bg text-content animate-fade-in" role="dialog" aria-modal="true" aria-label={view?.title ?? 'Detalle'}>
+    <button
+      type="button"
+      class="glass-btn glass-btn--icon fixed top-[calc(var(--safe-top)+0.75rem)] left-4 z-20"
+      onclick={closeDetail}
+      aria-label="Volver"
+    >
+      <Icon name="chevron-left" size={22} />
+    </button>
 
-    <div bind:this={scroller} class="h-full overflow-y-auto no-scrollbar overscroll-contain pb-[calc(env(safe-area-inset-bottom,0px)+4rem)]">
-      <!-- Backdrop -->
-      <div class="relative min-h-[56vh] flex items-end">
-        {#if backdrop}
-          <img class="absolute inset-0 h-full w-full object-cover" src={backdrop} alt="" decoding="async" />
+    <div bind:this={scroller} class="h-full overflow-y-auto overscroll-contain no-scrollbar pb-[calc(var(--safe-bottom)+3rem)]">
+      <!-- Hero -->
+      <div class="relative flex items-end h-[78svh] sm:h-[70svh] min-h-[26rem] max-h-[46rem]">
+        {#if heroPortrait || backdrop}
+          <picture>
+            {#if backdrop}<source media="(min-width: 640px)" srcset={backdrop} />{/if}
+            <img class="absolute inset-0 h-full w-full object-cover object-top" src={heroPortrait ?? backdrop} alt="" decoding="async" />
+          </picture>
         {/if}
-        <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-bg"></div>
-        <div class="relative mx-auto w-full max-w-3xl flex items-end gap-4 p-4 sm:p-6">
-          {#if poster}
-            <img class="w-24 sm:w-32 shrink-0 aspect-[2/3] object-cover rounded-2xl shadow-poster ring-1 ring-white/10" src={poster} alt={view?.title} />
+        <div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/50 to-transparent"></div>
+        <div class="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
+
+        <div class="page-x relative mx-auto w-full max-w-4xl">
+          <h1 class="text-[2rem] sm:text-5xl font-bold tracking-tight leading-[1.1] selectable">{view?.title ?? ''}</h1>
+          <p class="mt-2 text-[15px] font-medium text-muted">
+            {#if formatVote(view?.voteAverage ?? null)}
+              <span class="inline-flex items-center gap-1 text-content"><Icon name="star-fill" size={13} />{formatVote(view!.voteAverage)}</span> ·
+            {/if}
+            {metaLine()}
+          </p>
+          {#if detail?.genres?.length}
+            <p class="mt-1 text-[15px] text-muted">{detail.genres.slice(0, 3).map((g) => g.name).join(', ')}</p>
           {/if}
-          <div class="flex-1 min-w-0 pb-1 text-white">
-            <h1 class="text-3xl sm:text-4xl font-bold tracking-tight selectable [text-shadow:0_2px_20px_rgba(0,0,0,0.55)]">{view?.title ?? '\u2014'}</h1>
-            <p class="mt-1.5 text-sm font-medium text-white/80">{metaLine()}</p>
-            <div class="mt-2.5 flex flex-wrap gap-1.5">
-              {#if formatVote(view?.voteAverage ?? null)}
-                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold text-yellow-300 bg-black/40 backdrop-blur-md">
-                  <Icon name="star-fill" size={13} />{formatVote(view!.voteAverage)}
-                </span>
-              {/if}
-              {#each detail?.genres?.slice(0, 3) ?? [] as g (g.id)}
-                <span class="rounded-full px-2.5 py-1 text-xs font-medium text-white/90 bg-white/15 backdrop-blur-md">{g.name}</span>
-              {/each}
-            </div>
+
+          <div class="mt-5 grid grid-cols-2 gap-2.5 max-w-md">
+            <button
+              type="button"
+              class="glass-btn min-h-12 {stored?.status === 'pending' ? 'glass-btn--prominent' : ''}"
+              aria-pressed={stored?.status === 'pending'}
+              onclick={() => choose('pending')}
+            >
+              <Icon name={stored?.status === 'pending' ? 'bookmark-fill' : 'bookmark'} size={20} />Pendiente
+            </button>
+            <button
+              type="button"
+              class="glass-btn min-h-12 {stored?.status === 'watched' ? 'glass-btn--success' : ''}"
+              aria-pressed={stored?.status === 'watched'}
+              onclick={() => choose('watched')}
+            >
+              <Icon name={stored?.status === 'watched' ? 'check-circle-fill' : 'check-circle'} size={20} />Vista
+            </button>
           </div>
         </div>
       </div>
 
-      <div class="mx-auto w-full max-w-3xl px-4 sm:px-6">
-        <div class="grid grid-cols-2 gap-2.5">
-          <button
-            class="inline-flex items-center justify-center gap-2 min-h-12 rounded-xl font-semibold transition-all duration-150 ease-apple active:scale-[0.97]
-                   {stored?.status === 'pending' ? 'bg-accent text-white shadow-[0_4px_14px_hsl(var(--accent)/0.35)]' : 'bg-black/[0.05] dark:bg-white/[0.08] text-content'}"
-            aria-pressed={stored?.status === 'pending'}
-            onclick={() => choose('pending')}
-          >
-            <Icon name={stored?.status === 'pending' ? 'bookmark-fill' : 'bookmark'} size={20} />Pendiente
-          </button>
-          <button
-            class="inline-flex items-center justify-center gap-2 min-h-12 rounded-xl font-semibold transition-all duration-150 ease-apple active:scale-[0.97]
-                   {stored?.status === 'watched' ? 'bg-green-600 text-white shadow-[0_4px_14px_rgba(22,163,74,0.35)]' : 'bg-black/[0.05] dark:bg-white/[0.08] text-content'}"
-            aria-pressed={stored?.status === 'watched'}
-            onclick={() => choose('watched')}
-          >
-            <Icon name={stored?.status === 'watched' ? 'check-circle-fill' : 'check-circle'} size={20} />Vista
-          </button>
-        </div>
-
+      <div class="page-x mx-auto w-full max-w-4xl">
         {#if stored?.status === 'watched'}
-          <section class="mt-5 animate-fade-in">
-            <h2 class="text-[11px] font-medium uppercase tracking-wide text-muted mb-2">Tu valoración</h2>
+          <section class="mt-6 animate-fade-in">
+            <h2 class="section-title mb-2">Tu valoración</h2>
             <StarRating value={stored.rating} onChange={(v) => setRating(key, v)} showLabel />
           </section>
         {/if}
 
         {#if stored}
-          <button class="mt-3 text-sm font-medium text-red-500 active:opacity-60" onclick={onRemove}>Quitar de la biblioteca</button>
+          <button type="button" class="mt-4 text-[15px] font-medium text-danger active:opacity-60" onclick={onRemove}>Quitar de la biblioteca</button>
         {/if}
 
-        {#if error}<p class="text-red-500 text-[15px] mt-4">{error}</p>{/if}
+        {#if error}<p class="mt-4 text-[15px] text-danger">{error}</p>{/if}
 
         {#if detail?.tagline}
-          <p class="mt-6 text-lg font-medium italic tracking-tight selectable">{detail.tagline}</p>
+          <p class="mt-7 text-lg font-semibold tracking-tight selectable">{detail.tagline}</p>
         {/if}
 
-        <!-- Sinopsis -->
         {#if view?.overview || loading}
-          <section class="mt-6">
-            <h2 class="text-[11px] font-medium uppercase tracking-wide text-muted mb-3">Sinopsis</h2>
+          <section class="mt-4">
             {#if loading && !view?.overview}
               <div class="flex flex-col gap-2">
                 <span class="skeleton h-3.5 rounded-md"></span>
@@ -175,49 +174,47 @@
                 <span class="skeleton h-3.5 w-1/2 rounded-md"></span>
               </div>
             {:else}
-              <p class="text-[15px] leading-relaxed text-muted selectable">{view?.overview || 'Sin descripción disponible.'}</p>
+              <p class="text-base leading-relaxed text-muted selectable max-w-prose">{view?.overview || 'Sin descripción disponible.'}</p>
             {/if}
           </section>
         {/if}
 
-        <!-- Where to watch -->
         {#if providerGroups.length > 0}
-          <section class="mt-6">
-            <h2 class="text-[11px] font-medium uppercase tracking-wide text-muted mb-1">Dónde verlo</h2>
+          <section class="mt-8">
+            <h2 class="section-title">Dónde verlo</h2>
             {#each providerGroups as g (g.label)}
-              <p class="text-[13px] text-muted mb-2 mt-2">{g.label}</p>
+              <p class="mt-3 mb-2 text-[13px] font-medium text-muted">{g.label}</p>
               <div class="flex flex-wrap gap-2.5">
                 {#each g.items as p (p.providerId)}
-                  <div class="h-12 w-12 rounded-xl overflow-hidden bg-black/5 dark:bg-white/10 grid place-items-center text-[10px] text-center p-1 shadow-poster" title={p.providerName}>
+                  <div class="h-12 w-12 rounded-xl overflow-hidden bg-fill grid place-items-center text-[10px] text-center p-1" title={p.providerName}>
                     {#if p.logoPath}<img src={img(p.logoPath, ImageSize.logo)} alt={p.providerName} class="h-full w-full object-cover" />{:else}<span>{p.providerName}</span>{/if}
                   </div>
                 {/each}
               </div>
             {/each}
             {#if providers?.link}
-              <a class="inline-flex items-center gap-1.5 mt-3.5 text-accent text-[15px] font-medium selectable" href={providers.link} target="_blank" rel="noopener">
+              <a class="inline-flex items-center gap-1.5 mt-4 text-accent text-[15px] font-medium" href={providers.link} target="_blank" rel="noopener">
                 Ver opciones en JustWatch / TMDB <Icon name="arrow-right" size={15} />
               </a>
             {/if}
           </section>
         {/if}
 
-        <!-- Reparto -->
         {#if detail?.cast?.length}
-          <section class="mt-6">
-            <h2 class="text-[11px] font-medium uppercase tracking-wide text-muted mb-3">Reparto principal</h2>
-            <Carousel arrowTop="top-[39px]" class="">
+          <section class="mt-8">
+            <h2 class="section-title mb-3">Reparto</h2>
+            <Carousel class="">
               {#each detail.cast as c (c.id)}
-                <div class="w-[78px]">
-                  <div class="h-[78px] w-[78px] rounded-full overflow-hidden bg-black/5 dark:bg-white/10 shadow-poster">
+                <div class="w-[5.5rem]">
+                  <div class="h-[5.5rem] w-[5.5rem] rounded-full overflow-hidden bg-fill">
                     {#if c.profilePath}
-                      <img src={img(c.profilePath, ImageSize.profile)} alt={c.name} loading="lazy" class="h-full w-full object-cover" />
+                      <img src={img(c.profilePath, ImageSize.profile)} alt="" loading="lazy" class="h-full w-full object-cover" />
                     {:else}
                       <div class="grid h-full w-full place-items-center text-2xl font-bold text-muted">{c.name.slice(0, 1)}</div>
                     {/if}
                   </div>
-                  <p class="mt-2 text-[13px] font-medium leading-tight">{c.name}</p>
-                  {#if c.character}<p class="text-xs text-muted leading-tight mt-0.5">{c.character}</p>{/if}
+                  <p class="mt-2 text-[13px] font-medium leading-tight text-center">{c.name}</p>
+                  {#if c.character}<p class="mt-0.5 text-xs text-muted leading-tight text-center line-clamp-2">{c.character}</p>{/if}
                 </div>
               {/each}
             </Carousel>
@@ -227,13 +224,9 @@
         {#if similar.length > 0}
           <Carousel title="Si te gusta esto" class="mt-8 animate-fade-up">
             {#each similar as item (item.mediaType + item.id)}
-              <PosterCard {item} width={112} />
+              <PosterCard {item} />
             {/each}
           </Carousel>
-        {/if}
-
-        {#if loading && !detail}
-          <div class="text-center py-6 text-sm text-muted">Cargando detalles…</div>
         {/if}
       </div>
     </div>

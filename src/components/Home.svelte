@@ -4,44 +4,36 @@
   import ForYouRow from './ForYouRow.svelte';
   import Carousel from './Carousel.svelte';
   import PosterCard from './PosterCard.svelte';
+  import PageHeader from './PageHeader.svelte';
+  import Logo from './Logo.svelte';
+  import MissingKey from './MissingKey.svelte';
   import { pendingTitles, toSummary } from '../lib/store';
-  import Icon from './Icon.svelte';
-  import {
-    hasApiKey,
-    trending,
-    topRatedMovies,
-    topRatedTv,
-    classicMovies,
-    popularTv,
-    nowPlaying,
-  } from '../lib/tmdb';
+  import { hasApiKey, trending, topRatedMovies, topRatedTv, classicMovies, popularTv, nowPlaying } from '../lib/tmdb';
   import type { MediaSummary } from '../lib/types';
-  import { activeTab, openLibrary } from '../lib/ui';
+  import { openLibrary } from '../lib/ui';
 
-  const discover: { title: string; subtitle?: string; loader: (s?: AbortSignal) => Promise<MediaSummary[]> }[] = [
-    { title: 'Tendencias esta semana', subtitle: 'vía TMDB', loader: trending },
+  const discover: { title: string; loader: (s?: AbortSignal) => Promise<MediaSummary[]> }[] = [
+    { title: 'Tendencias', loader: trending },
+    { title: 'En cartelera', loader: nowPlaying },
     { title: 'Películas mejor valoradas', loader: topRatedMovies },
     { title: 'Series mejor valoradas', loader: topRatedTv },
-    { title: 'Clásicos imprescindibles', loader: classicMovies },
-    { title: 'En cartelera', loader: nowPlaying },
     { title: 'Series populares', loader: popularTv },
+    { title: 'Clásicos', loader: classicMovies },
   ];
 </script>
 
 <div class="animate-fade-in">
+  <PageHeader>
+    <h1><Logo height={30} /></h1>
+  </PageHeader>
+
   {#if !hasApiKey()}
-    <div class="glass mb-2 p-5 !rounded-2xl border-yellow-400/30 bg-yellow-400/[0.07]">
-      <p class="text-lg font-semibold">Falta la API key de TMDB</p>
-      <p class="mt-1 text-[15px] text-muted leading-relaxed">
-        Define <code class="rounded bg-black/10 dark:bg-white/10 px-1.5 py-0.5 text-[0.85em]">PUBLIC_TMDB_API_KEY</code>
-        en un archivo <code class="rounded bg-black/10 dark:bg-white/10 px-1.5 py-0.5 text-[0.85em]">.env</code> y recompila.
-      </p>
-    </div>
+    <MissingKey />
   {:else}
     <ForYouRow />
 
     {#if $pendingTitles.length > 0}
-      <Carousel title="Tus pendientes" subtitle={String($pendingTitles.length)} onSeeAll={() => openLibrary('pending')}>
+      <Carousel title="Tus pendientes" onSeeAll={() => openLibrary('pending')}>
         {#each $pendingTitles.slice(0, 20) as t (t.key)}
           <PosterCard item={toSummary(t)} />
         {/each}
@@ -49,12 +41,7 @@
     {/if}
 
     {#each discover as d (d.title)}
-      <DiscoverRow title={d.title} subtitle={d.subtitle} loader={d.loader} />
+      <DiscoverRow title={d.title} loader={d.loader} />
     {/each}
-
-    <div class="mt-8 flex items-center justify-center gap-2 text-muted">
-      <Icon name="search" size={18} />
-      <span class="text-[15px]">¿Buscas algo concreto? Usa la pestaña <button class="font-semibold text-accent" onclick={() => activeTab.set('search')}>Buscar</button>.</span>
-    </div>
   {/if}
 </div>
