@@ -46,7 +46,8 @@
 **App**
 - Apple Human Interface and Liquid Glass design ([DESIGN.md](DESIGN.md)), light, dark and
   system themes with no flash on load.
-- Top bar on desktop, bottom tab bar on mobile, iPhone safe areas, installable as a PWA.
+- Top bar on desktop, bottom tab bar on mobile, iPhone safe areas, installable as a PWA that
+  opens offline (service worker).
 - Without Supabase: an optional build-time login and data in `localStorage` only.
 - JSON export and import (replace or merge), including backups from the old list format.
 

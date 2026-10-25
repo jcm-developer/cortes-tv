@@ -45,7 +45,7 @@ cortes-tv/
 │   └── workflows/standards.yml  # Docs check and commit message check
 ├── .githooks/                   # commit-msg and pre-commit hooks
 ├── docs/                        # Code style, workflow, operations, decisions, domains
-├── public/                      # Static assets: logo, PWA icons, web manifest
+├── public/                      # Static assets: logo, PWA icons, web manifest, service worker (sw.js)
 ├── scripts/
 │   ├── check-docs.mjs           # Docs vs code check (pre-commit and CI)
 │   └── generate-icons.mjs       # Regenerates the PWA PNG icons, no dependencies

@@ -7,6 +7,8 @@ interface Props {
 const { title = 'Cortes TV' } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const withBase = (p: string) => `${base.replace(/\/$/, '')}/${p.replace(/^\//, '')}`;
+const swUrl = import.meta.env.PROD ? withBase('sw.js') : '';
+const swScope = `${base.replace(/\/$/, '')}/`;
 ---
 
 <!doctype html>
@@ -40,6 +42,14 @@ const withBase = (p: string) => `${base.replace(/\/$/, '')}/${p.replace(/^\//, '
           document.documentElement.classList.toggle('dark', dark);
         } catch (_) {}
       })();
+    </script>
+    <!-- Offline support (public/sw.js); production only, so dev never serves stale files -->
+    <script is:inline define:vars={{ swUrl, swScope }}>
+      if (swUrl && 'serviceWorker' in navigator) {
+        addEventListener('load', () => {
+          navigator.serviceWorker.register(swUrl, { scope: swScope }).catch(() => {});
+        });
+      }
     </script>
   </head>
   <body>

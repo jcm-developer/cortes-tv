@@ -68,6 +68,9 @@ dispatch. It installs with `pnpm install --frozen-lockfile`, builds with `SITE` 
 derived from the repository owner and name, adds `dist/.nojekyll` and publishes `dist/`. Pages
 must be set to "Source: GitHub Actions" in the repository settings.
 
+The deploy needs no cache step: `public/sw.js` serves pages network first, so the installed
+app shows a new deploy on its next open (`docs/domains/ui.md`).
+
 `pnpm-workspace.yaml` allows the `esbuild` and `sharp` build scripts (`allowBuilds`, the
 pnpm 11 format) so the frozen install succeeds in CI.
 

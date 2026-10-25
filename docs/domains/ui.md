@@ -18,7 +18,9 @@ toasts. Visual rules live in `DESIGN.md`; this doc covers behaviour.
 - `src/components/Detail.svelte`, `Sheet.svelte`, `TitleSheet.svelte`, `Toast.svelte`.
 - Building blocks: `Carousel.svelte`, `PosterCard.svelte`, `Select.svelte`,
   `StarRating.svelte`, `Icon.svelte`.
-- `src/layouts/Layout.astro`: PWA meta, the no-flash theme script, the blurred background.
+- `src/layouts/Layout.astro`: PWA meta, the no-flash theme script, the service worker
+  registration, the blurred background.
+- `public/sw.js`, `public/manifest.webmanifest`: offline support and install metadata.
 
 ## Data
 
@@ -36,6 +38,11 @@ toasts. Visual rules live in `DESIGN.md`; this doc covers behaviour.
 4. `showToast` shows one message for 2.2 s, or 4 s when it carries an action ("Deshacer"); a
    new toast replaces the current one.
 5. Pressing the active tab again scrolls to the top.
+6. In production, `Layout.astro` registers `public/sw.js` under the base path. It serves pages
+   network first with the cached shell as fallback, hashed `/assets/` cache first, TMDB images
+   cache first (400 entries) and TMDB API answers network first with the last answer as
+   fallback (80 entries), so the installed app opens offline with the library and the last
+   rows. Supabase requests are never cached.
 
 ## Invariants
 
@@ -48,6 +55,11 @@ toasts. Visual rules live in `DESIGN.md`; this doc covers behaviour.
 ## Gotchas
 
 - The theme script in `Layout.astro` duplicates the logic of `applyTheme`; change both.
+- The service worker only runs in production builds (`pnpm build && pnpm preview` to try it).
+  Bump `VERSION` in `sw.js` to drop every cache; a new deploy is picked up anyway on the next
+  open, because pages are network first.
+- The app icon is `public/logo.png` (manifest and `apple-touch-icon`); `public/icons/` holds an
+  older generic design that nothing references.
 
 ## Related
 

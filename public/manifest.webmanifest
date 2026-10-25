@@ -4,6 +4,7 @@
   "description": "Gestiona tus películas y series con un diseño inmersivo estilo Apple TV.",
   "lang": "es",
   "dir": "ltr",
+  "id": "./",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
@@ -12,6 +13,6 @@
   "theme_color": "#000003",
   "icons": [
     { "src": "logo.png", "sizes": "1024x1024", "type": "image/png" },
-    { "src": "logo.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
+    { "src": "logo.png", "sizes": "1024x1024", "type": "image/png", "purpose": "maskable" }
   ]
 }
