@@ -23,3 +23,6 @@ pnpm-debug.log*
 .vscode/
 .idea/
 Thumbs.db
+
+# local agent skill links (recreated by the skills CLI)
+.claude/skills/

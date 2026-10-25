@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "liquid-glass": {
+      "source": "jcm-developer/liquid-glass-components",
+      "sourceType": "github",
+      "skillPath": "skills/liquid-glass/SKILL.md",
+      "computedHash": "a7f78dba6b466f41031238f37226ebc33cdd84b41ac094dfa4ed40c9ac8aa09c"
+    }
+  }
+}

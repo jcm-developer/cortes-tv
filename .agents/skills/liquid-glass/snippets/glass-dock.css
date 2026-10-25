@@ -1,0 +1,160 @@
+/**
+ * Dock with flat app icons and proximity magnification.
+ *
+ * Liquid Glass Components v2.1.0. Requires tokens.css. Optional: liquid-glass.js (proximity magnification, refraction).
+ * MIT License. https://github.com/jcm-developer/liquid-glass-components
+ *
+ * Usage:
+ *   <nav class="glass-dock" aria-label="Dock" data-refract data-refract-bezel="20">
+ *     <button class="glass-dock__item" type="button" aria-label="Files" data-tooltip="Files">
+ *       <span class="glass-dock__icon-box" style="--glass-dock-icon: linear-gradient(160deg, #6ab0ff, #1d6bff)">
+ *         <svg viewBox="0 0 24 24" aria-hidden="true">…</svg>
+ *       </span>
+ *       <span class="glass-dock__dot" aria-hidden="true"></span>
+ *     </button>
+ *     …
+ *   </nav>
+ *
+ *   App icons are content, so they are flat colour, not glass.
+ *   Without liquid-glass.js, hovering an item still magnifies it.
+ */
+
+/* ── Base ── */
+
+.glass-dock {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--glass-radius-lg);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-fallback)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur-fallback)) saturate(var(--glass-saturation));
+  box-shadow: var(--glass-shadow-rim), var(--glass-shadow-elevated);
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  color: var(--glass-text-primary);
+  font-family: var(--glass-font-sans);
+}
+
+/* v1 markup wrapped items in __inner */
+.glass-dock__inner { display: contents; }
+
+.glass-dock__item {
+  --glass-dock-scale: 1;
+  --glass-dock-lift: 0px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #ffffff;
+  cursor: pointer;
+  transform-origin: bottom center;
+  scale: var(--glass-dock-scale);
+  translate: 0 var(--glass-dock-lift);
+  transition: scale 180ms ease-out, translate 180ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* CSS-only magnification (replaced by proximity magnification in JS) */
+.glass-dock:not(.is-magnifying) .glass-dock__item:hover {
+  --glass-dock-scale: 1.25;
+  --glass-dock-lift: -6px;
+}
+
+.glass-dock__icon-box {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--glass-dock-icon, linear-gradient(160deg, #b5b5bd, #5b5b66));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 4px 10px rgb(0 0 0 / 0.25);
+}
+
+.glass-dock__icon-box svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.glass-dock__dot {
+  width: 4px;
+  height: 4px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--glass-text-primary);
+  opacity: 0.8;
+}
+
+/* Tooltip */
+.glass-dock__item[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  translate: -50% 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgb(28 28 30 / 0.9);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: var(--glass-font-weight-body);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--glass-duration-fast), translate var(--glass-duration-fast);
+}
+.glass-dock__item:hover::after,
+.glass-dock__item:focus-visible::after { opacity: 1; translate: -50% 0; }
+
+.glass-dock__item:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 3px;
+  border-radius: 14px;
+  box-shadow: var(--glass-focus-ring);
+}
+
+/* ── Accessibility ── */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-dock {
+    background: var(--glass-solid-bg);
+    color: var(--glass-solid-text);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    outline-color: var(--glass-solid-border);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass-dock {
+    background: var(--glass-solid-bg);
+    outline: 2px solid var(--glass-solid-text);
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-dock__item { transition: none; }
+  .glass-dock .glass-dock__item:hover { --glass-dock-scale: 1; --glass-dock-lift: 0px; }
+}
+
+@media (forced-colors: active) {
+  .glass-dock {
+    background: Canvas;
+    outline: 1px solid CanvasText;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none;
+  }
+  .glass-dock__icon-box { background: ButtonFace; color: ButtonText; outline: 1px solid ButtonText; }
+}

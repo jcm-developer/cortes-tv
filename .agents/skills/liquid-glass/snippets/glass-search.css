@@ -1,0 +1,120 @@
+/**
+ * Search pill that springs wider on focus.
+ *
+ * Liquid Glass Components v2.1.0. Requires tokens.css. Optional: liquid-glass.js (refraction).
+ * MIT License. https://github.com/jcm-developer/liquid-glass-components
+ *
+ * Usage:
+ *   <div class="glass-search" role="search" data-refract>
+ *     <svg class="glass-search__icon" viewBox="0 0 24 24" aria-hidden="true">…</svg>
+ *     <input class="glass-search__input" type="search" placeholder="Search" aria-label="Search">
+ *     <kbd class="glass-search__kbd">⌘K</kbd>
+ *   </div>
+ *
+ *   The pill springs wider on focus. Tune with --glass-search-width / --glass-search-width-focus.
+ */
+
+/* ── Base ── */
+
+.glass-search {
+  --glass-search-width: 230px;
+  --glass-search-width-focus: 300px;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: var(--glass-search-width);
+  max-width: 100%;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: var(--glass-radius-pill);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-fallback)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur-fallback)) saturate(var(--glass-saturation));
+  box-shadow: var(--glass-shadow-rim), var(--glass-shadow);
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  color: var(--glass-text-primary);
+  text-shadow: var(--glass-text-shadow);
+  font-family: var(--glass-font-sans);
+  cursor: text;
+  transition: width var(--glass-duration-spring) var(--glass-easing-spring), background var(--glass-duration-fast);
+}
+
+.glass-search:focus-within {
+  width: var(--glass-search-width-focus);
+  background: var(--glass-bg-hover);
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+  box-shadow: var(--glass-shadow-rim), var(--glass-focus-ring);
+}
+
+.glass-search__icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0.85;
+}
+
+.glass-search__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: inherit;
+  font: var(--glass-font-weight-body) 0.9375rem var(--glass-font-sans);
+}
+.glass-search__input::placeholder { color: var(--glass-text-secondary); }
+.glass-search__input::-webkit-search-cancel-button { filter: grayscale(1); }
+
+.glass-search__kbd {
+  flex: none;
+  padding: 1px 6px;
+  border: 1px solid var(--glass-separator);
+  border-radius: 6px;
+  color: var(--glass-text-secondary);
+  font: 0.72rem var(--glass-font-mono);
+}
+
+/* ── Accessibility ── */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-search {
+    background: var(--glass-solid-bg);
+    color: var(--glass-solid-text);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    text-shadow: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass-search {
+    background: var(--glass-solid-bg);
+    color: var(--glass-solid-text);
+    outline: 2px solid currentColor;
+    box-shadow: none;
+    text-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-search { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .glass-search {
+    background: Field;
+    color: FieldText;
+    outline: 1px solid FieldText;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none;
+  }
+  .glass-search:focus-within { outline: 3px solid Highlight; }
+}

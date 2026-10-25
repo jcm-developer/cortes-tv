@@ -1,0 +1,98 @@
+/**
+ * Floating glass panel for players, widgets and inspectors.
+ *
+ * Liquid Glass Components v2.1.0. Requires tokens.css. Optional: liquid-glass.js (refraction, sheen).
+ * MIT License. https://github.com/jcm-developer/liquid-glass-components
+ *
+ * Usage:
+ *   <div class="glass-card glass-sheen" role="region" aria-label="Now playing" data-refract data-refract-bezel="22">
+ *     <h3 class="glass-card__title">Now Playing</h3>
+ *     <p class="glass-card__body">Floating panels belong to the chrome layer: players, widgets, inspectors.</p>
+ *   </div>
+ *
+ *   Use for floating panels above content. Do NOT use for content lists or feeds.
+ */
+
+/* ── Base ── */
+
+.glass-card {
+  position: relative;
+  isolation: isolate;
+  padding: 18px 20px;
+  border-radius: var(--glass-radius-xl);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-fallback)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur-fallback)) saturate(var(--glass-saturation));
+  box-shadow: var(--glass-shadow-rim), var(--glass-shadow);
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  color: var(--glass-text-primary);
+  text-shadow: var(--glass-text-shadow);
+  font-family: var(--glass-font-sans);
+  font-weight: var(--glass-font-weight-body);
+}
+
+.glass-card__title {
+  margin: 0 0 6px;
+  font-size: 1.0625rem;
+  font-weight: var(--glass-font-weight-heading);
+  letter-spacing: -0.01em;
+}
+
+.glass-card__body {
+  margin: 0;
+  color: var(--glass-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* ── Variants ── */
+.glass-card--clear {
+  --glass-tint: 0.02;
+  --glass-rim: 0.75;
+}
+
+.glass-card--prominent {
+  --glass-tint-rgb: var(--glass-accent-rgb);
+  --glass-tint: var(--glass-tint-prominent);
+  --glass-text-primary: #ffffff;
+  --glass-text-secondary: rgb(255 255 255 / 0.85);
+}
+
+.glass-card--elevated {
+  box-shadow: var(--glass-shadow-rim), var(--glass-shadow-elevated);
+}
+
+/* ── Accessibility ── */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-card {
+    background: var(--glass-solid-bg);
+    color: var(--glass-solid-text);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    outline-color: var(--glass-solid-border);
+    text-shadow: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass-card {
+    background: var(--glass-solid-bg);
+    color: var(--glass-solid-text);
+    outline: 2px solid currentColor;
+    box-shadow: none;
+    text-shadow: none;
+  }
+  .glass-card__body { color: inherit; }
+}
+
+@media (forced-colors: active) {
+  .glass-card {
+    background: Canvas;
+    color: CanvasText;
+    outline: 1px solid CanvasText;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none;
+  }
+}

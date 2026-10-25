@@ -37,6 +37,7 @@ straight from the browser, and the user's lists, ratings and watched dates live 
 <!-- check-docs: map -->
 ```
 cortes-tv/
+├── .agents/skills/              # Vendored agent skills (liquid-glass), pinned in skills-lock.json
 ├── .github/
 │   ├── workflows/deploy.yml     # Build and deploy to GitHub Pages on push to main
 │   └── workflows/standards.yml  # Docs check and commit message check
@@ -136,7 +137,10 @@ missing from a strict map, or a doc under `docs/` that no `AGENTS.md` mentions.
 - **Static site only.** No server code: everything runs in the browser, so every `PUBLIC_*`
   variable ends up in the public bundle (`docs/operations.md`).
 - **Follow `DESIGN.md`** for any visual change: reuse its tokens and glass utilities before
-  adding a new value.
+  adding a new value. For chrome-layer glass controls (navigation, sheets, toasts, toggles),
+  the `liquid-glass` skill in `.agents/skills/` applies, within the `DESIGN.md` tokens.
+- **Vendored skills are not edited by hand.** `.agents/skills/` is managed by the skills CLI
+  and pinned in `skills-lock.json`; the `.claude/skills/` links are local and git-ignored.
 
 ## 6. Workflow
 

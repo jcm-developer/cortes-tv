@@ -1,0 +1,206 @@
+/**
+ * Navigation sidebar with a sliding current-page indicator.
+ *
+ * Liquid Glass Components v2.1.0. Requires tokens.css. Optional: liquid-glass.js (sliding indicator, refraction).
+ * MIT License. https://github.com/jcm-developer/liquid-glass-components
+ *
+ * Usage:
+ *   <aside class="glass-sidebar" aria-label="Library" data-refract data-refract-bezel="18">
+ *     <header class="glass-sidebar__header">
+ *       <span class="glass-sidebar__brand-name">Studio</span>
+ *     </header>
+ *     <nav class="glass-sidebar__nav" aria-label="Library">
+ *       <div class="glass-sidebar__section-title">Library</div>
+ *       <a href="#recents" class="glass-sidebar__link" aria-current="page">
+ *         <svg class="glass-sidebar__link-icon" viewBox="0 0 24 24" aria-hidden="true">…</svg>
+ *         <span class="glass-sidebar__link-text">Recents</span>
+ *         <span class="glass-sidebar__badge">12</span>
+ *       </a>
+ *       <a href="#favorites" class="glass-sidebar__link">
+ *         <svg class="glass-sidebar__link-icon" viewBox="0 0 24 24" aria-hidden="true">…</svg>
+ *         <span class="glass-sidebar__link-text">Favorites</span>
+ *       </a>
+ *     </nav>
+ *     <footer class="glass-sidebar__footer">…</footer>
+ *   </aside>
+ *
+ *   The current link is marked with aria-current="page" (the v1 .active class still works).
+ */
+
+/* ── Base ── */
+
+.glass-sidebar {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  padding: 12px 8px;
+  border-radius: var(--glass-radius-lg);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-fallback)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur-fallback)) saturate(var(--glass-saturation));
+  box-shadow: var(--glass-shadow-rim), var(--glass-shadow);
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  color: var(--glass-text-primary);
+  text-shadow: var(--glass-text-shadow);
+  font-family: var(--glass-font-sans);
+  font-weight: var(--glass-font-weight-body);
+}
+
+.glass-sidebar__header {
+  padding: 4px 10px 12px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--glass-separator);
+}
+.glass-sidebar__brand-name { font-weight: var(--glass-font-weight-heading); }
+
+.glass-sidebar__nav {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.glass-sidebar__section-title {
+  padding: 6px 10px;
+  color: var(--glass-text-secondary);
+  font-size: 0.6875rem;
+  font-weight: var(--glass-font-weight-heading);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.glass-sidebar__link {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: var(--glass-radius-xs);
+  color: inherit;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: background var(--glass-duration-fast);
+}
+.glass-sidebar__link:hover { background: var(--glass-fill-hover); }
+.glass-sidebar__nav.is-enhanced .glass-sidebar__link:hover { background: none; }
+
+/* Static selection when liquid-glass.js is not loaded */
+.glass-sidebar__nav:not(.is-enhanced) .glass-sidebar__link[aria-current="page"],
+.glass-sidebar__nav:not(.is-enhanced) .glass-sidebar__link.active {
+  background: var(--glass-fill);
+}
+.glass-sidebar__link[aria-current="page"],
+.glass-sidebar__link.active {
+  font-weight: var(--glass-font-weight-heading);
+}
+
+/* Sliding indicator (inserted by liquid-glass.js) */
+.glass-sidebar__nav > .glass-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: var(--glass-ind-w, 0);
+  height: var(--glass-ind-h, 0);
+  translate: var(--glass-ind-x, 0) var(--glass-ind-y, 0);
+  border-radius: var(--glass-radius-xs);
+  background: var(--glass-fill);
+  box-shadow:
+    inset 1px 1px 0 -0.5px rgb(255 255 255 / 0.6),
+    inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.25);
+  pointer-events: none;
+  transition:
+    translate var(--glass-duration-spring) var(--glass-easing-spring),
+    width var(--glass-duration-spring) var(--glass-easing-spring),
+    height var(--glass-duration-spring) var(--glass-easing-spring),
+    scale 250ms var(--glass-easing-smooth);
+}
+.glass-sidebar__nav > .glass-indicator.is-stretching { scale: 0.94 1.1; }
+.glass-sidebar__nav > .glass-indicator.is-instant { transition: none; }
+
+.glass-sidebar__link-icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+.glass-sidebar__link-text { flex: 1; }
+
+.glass-sidebar__badge {
+  padding: 1px 7px;
+  border-radius: var(--glass-radius-pill);
+  background: var(--glass-fill);
+  color: var(--glass-text-secondary);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+.glass-sidebar__badge--accent { background: var(--glass-accent); color: #ffffff; }
+
+.glass-sidebar__footer {
+  margin-top: 10px;
+  padding: 10px 10px 2px;
+  border-top: 1px solid var(--glass-separator);
+  color: var(--glass-text-secondary);
+  font-size: 0.8rem;
+}
+
+.glass-sidebar__link:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 1px;
+  box-shadow: var(--glass-focus-ring);
+}
+
+/* ── Accessibility ── */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-sidebar {
+    background: var(--glass-solid-bg);
+    color: var(--glass-solid-text);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    outline-color: var(--glass-solid-border);
+    text-shadow: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass-sidebar {
+    background: var(--glass-solid-bg);
+    color: var(--glass-solid-text);
+    outline: 2px solid currentColor;
+    box-shadow: none;
+    text-shadow: none;
+  }
+  .glass-sidebar__nav > .glass-indicator { outline: 2px solid currentColor; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-sidebar__nav > .glass-indicator,
+  .glass-sidebar__link { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .glass-sidebar {
+    background: Canvas;
+    color: CanvasText;
+    outline: 1px solid CanvasText;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none;
+  }
+  .glass-sidebar__nav > .glass-indicator,
+  .glass-sidebar__nav:not(.is-enhanced) .glass-sidebar__link[aria-current="page"] {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+  .glass-sidebar__link[aria-current="page"] { color: HighlightText; forced-color-adjust: none; }
+}

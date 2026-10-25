@@ -1,0 +1,138 @@
+/**
+ * Segmented control with a sliding, stretching selection indicator.
+ *
+ * Liquid Glass Components v2.1.0. Requires tokens.css. Optional: liquid-glass.js (sliding indicator, arrow keys).
+ * MIT License. https://github.com/jcm-developer/liquid-glass-components
+ *
+ * Usage:
+ *   <div class="glass-segmented" role="radiogroup" aria-label="View range" data-refract>
+ *     <button class="glass-segmented__option" type="button" role="radio" aria-checked="true">Day</button>
+ *     <button class="glass-segmented__option" type="button" role="radio" aria-checked="false">Week</button>
+ *     <button class="glass-segmented__option" type="button" role="radio" aria-checked="false">Month</button>
+ *   </div>
+ *
+ *   liquid-glass.js adds a .glass-indicator that slides, stretches and settles
+ *   between options. Without it, the selected option keeps a static fill.
+ */
+
+/* ── Base ── */
+
+.glass-segmented {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  padding: 4px;
+  border-radius: var(--glass-radius-pill);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-fallback)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur-fallback)) saturate(var(--glass-saturation));
+  box-shadow: var(--glass-shadow-rim), var(--glass-shadow);
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  color: var(--glass-text-primary);
+  text-shadow: var(--glass-text-shadow);
+  font-family: var(--glass-font-sans);
+}
+
+.glass-segmented__option {
+  position: relative;
+  z-index: 1;
+  min-height: 34px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: var(--glass-radius-pill);
+  background: none;
+  color: var(--glass-text-secondary);
+  font: var(--glass-font-weight-body) 0.85rem/1 var(--glass-font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--glass-duration-fast);
+}
+
+.glass-segmented__option:hover,
+.glass-segmented__option[aria-checked="true"],
+.glass-segmented__option--active {
+  color: var(--glass-text-primary);
+}
+
+/* Static selection when liquid-glass.js is not loaded */
+.glass-segmented:not(.is-enhanced) .glass-segmented__option[aria-checked="true"],
+.glass-segmented:not(.is-enhanced) .glass-segmented__option--active {
+  background: var(--glass-fill);
+}
+
+/* Sliding indicator (inserted by liquid-glass.js) */
+.glass-segmented > .glass-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: var(--glass-ind-w, 0);
+  height: var(--glass-ind-h, 0);
+  translate: var(--glass-ind-x, 0) var(--glass-ind-y, 0);
+  border-radius: var(--glass-radius-pill);
+  background: var(--glass-fill);
+  box-shadow:
+    inset 1px 1px 0 -0.5px rgb(255 255 255 / 0.75),
+    inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.35),
+    0 2px 10px rgb(var(--glass-shadow-color) / 0.15);
+  pointer-events: none;
+  transition:
+    translate var(--glass-duration-spring) var(--glass-easing-spring),
+    width var(--glass-duration-spring) var(--glass-easing-spring),
+    height var(--glass-duration-spring) var(--glass-easing-spring),
+    scale 250ms var(--glass-easing-smooth);
+}
+.glass-segmented > .glass-indicator.is-stretching { scale: 1.12 0.88; }
+.glass-segmented > .glass-indicator.is-instant { transition: none; }
+
+.glass-segmented__option:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 1px;
+  box-shadow: var(--glass-focus-ring);
+}
+
+/* ── Accessibility ── */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-segmented {
+    background: var(--glass-solid-bg);
+    color: var(--glass-solid-text);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    outline-color: var(--glass-solid-border);
+    text-shadow: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass-segmented {
+    background: var(--glass-solid-bg);
+    color: var(--glass-solid-text);
+    outline: 2px solid currentColor;
+    box-shadow: none;
+    text-shadow: none;
+  }
+  .glass-segmented > .glass-indicator { outline: 2px solid currentColor; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-segmented > .glass-indicator,
+  .glass-segmented__option { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .glass-segmented {
+    background: Canvas;
+    color: CanvasText;
+    outline: 1px solid CanvasText;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none;
+  }
+  .glass-segmented > .glass-indicator,
+  .glass-segmented:not(.is-enhanced) .glass-segmented__option[aria-checked="true"] {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+  .glass-segmented__option[aria-checked="true"] { color: HighlightText; forced-color-adjust: none; }
+}
