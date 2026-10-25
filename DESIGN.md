@@ -115,7 +115,8 @@ Los controles de vidrio **crecen** al pulsarlos (`--glass-press-scale: 1.08`); n
 "**Ctv**" en **SF Pro Display Bold**, convertido a trazado para que se vea igual en cualquier dispositivo.
 
 - **Icono de app** (`public/icons/icon.svg`): letras blancas con un degradado muy suave sobre negro con degradado vertical (`#2c2c2e` a `#050506`), a sangre (iOS y los iconos *maskable* redondean las esquinas). Los PNG se generan con `node scripts/generate-icons.mjs`.
-- **Logotipo** (`Logo.svelte`): el mismo trazado en `currentColor`; 22px en la barra superior, 56px en el login y 40px en la pantalla de carga.
+- **Logotipo** (`Logo.svelte`): el mismo trazado en `currentColor`; 56px en el login y 40px en la pantalla de carga.
+- **Nombre en la barra superior**: "Cortes TV" como texto en la fuente del sistema, bold y con tracking ajustado (19px en móvil, 20px en escritorio). El monograma "Ctv" es para el icono, no para la navegación.
 - Sin la manzana ni ninguna forma registrada de Apple.
 
 ---

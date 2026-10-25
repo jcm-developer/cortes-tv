@@ -81,8 +81,8 @@ behaviour.
   Bump `VERSION` in `sw.js` to drop every cache; a new deploy is picked up anyway on the next
   open, because pages are network first.
 - The logo exists twice: `public/icons/icon.svg` (the app icon, source of every PNG through
-  `scripts/generate-icons.mjs`) and `src/components/Logo.svelte` (the wordmark in the top
-  bar, login and splash). Both use the same path, "Ctv" set in SF Pro Display Bold and converted to
+  `scripts/generate-icons.mjs`) and `src/components/Logo.svelte` (the wordmark on the login
+  and splash; the top bar shows "Cortes TV" as text). Both use the same path, "Ctv" set in SF Pro Display Bold and converted to
   outlines; change both together.
 - A glass element is the containing block of its `position: fixed` children; keep menus and
   tooltips outside glass containers. iOS keeps the icon of an installed app until it is

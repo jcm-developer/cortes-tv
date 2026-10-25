@@ -1,7 +1,6 @@
 <script lang="ts">
-  /** Renders the floating glass top bar: wordmark, the tabs on desktop, the theme toggle and the settings button. */
+  /** Renders the floating glass top bar: the "Cortes TV" name, the tabs on desktop, the theme toggle and the settings button. */
   import Icon from './Icon.svelte';
-  import Logo from './Logo.svelte';
   import { activeTab, darkActive, selectTab, settingsOpen, toggleTheme, type Tab } from '../lib/ui';
 
   const tabs: { id: Tab; label: string }[] = [
@@ -25,8 +24,14 @@
   class="glass-topbar fixed left-1/2 -translate-x-1/2 top-[var(--topbar-top)] z-50 w-[var(--chrome-w)]"
   class:is-clear={!scrolled}
 >
-  <button type="button" class="flex items-center min-h-11 pr-2 active:opacity-60" onclick={() => selectTab('home')} aria-label="Cortes TV, inicio">
-    <Logo height={22} />
+  <!-- The name as text; the "Ctv" mark (Logo.svelte) is for the app icon, login and splash -->
+  <button
+    type="button"
+    class="flex items-center min-h-11 pr-2 text-[1.1875rem] md:text-xl font-bold tracking-tight whitespace-nowrap active:opacity-60"
+    onclick={() => selectTab('home')}
+    aria-label="Cortes TV, inicio"
+  >
+    Cortes TV
   </button>
 
   <nav class="glass-topbar__links hidden md:grid ml-3" aria-label="Secciones">
