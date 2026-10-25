@@ -42,7 +42,7 @@ toasts. Visual rules live in `DESIGN.md`; this doc covers behaviour.
    network first with the cached shell as fallback, hashed `/assets/` cache first, TMDB images
    cache first (400 entries) and TMDB API answers network first with the last answer as
    fallback (80 entries), so the installed app opens offline with the library and the last
-   rows. Supabase requests are never cached.
+   rows. Convex traffic (a WebSocket and auth calls) is never cached.
 
 ## Invariants
 

@@ -40,7 +40,7 @@
   watch it (`/watch/providers`) and similar titles (`/recommendations`).
 
 **Sync**
-- Optional Supabase login (email and password) that syncs the library between desktop and
+- Optional Convex login (email and password) that syncs the library live between desktop and
   iPhone, works offline and catches up when the connection returns.
 
 **App**
@@ -48,7 +48,7 @@
   system themes with no flash on load.
 - Top bar on desktop, bottom tab bar on mobile, iPhone safe areas, installable as a PWA that
   opens offline (service worker).
-- Without Supabase: an optional build-time login and data in `localStorage` only.
+- Without Convex: an optional build-time login and data in `localStorage` only.
 - JSON export and import (replace or merge), including backups from the old list format.
 
 The UI is in Spanish.
@@ -70,7 +70,7 @@ The UI is in Spanish.
 | Site and build | Astro 5, static output with one client-only island |
 | UI | Svelte 5, TypeScript |
 | Styling | Tailwind CSS 3 with design tokens as CSS variables |
-| Data | TMDB API v3 (read only), browser `localStorage`, optional Supabase |
+| Data | TMDB API v3 (read only), browser `localStorage`, optional Convex (auth and live sync) |
 | Hosting | GitHub Pages, deployed by GitHub Actions |
 
 ---
@@ -82,18 +82,18 @@ flowchart LR
   user([User]) --> app[Svelte island]
   app --> tmdb[(TMDB API)]
   app --> ls[(localStorage)]
-  ls <-. sync .-> sb[(Supabase user_titles)]
+  ls <-. live sync .-> cx[(Convex titles)]
   ls --> backup[JSON backup file]
   gha[GitHub Actions] --> pages[GitHub Pages]
   pages --> app
 ```
 
-There is no server code. The browser calls TMDB directly and keeps the user's library in
-`localStorage`, one record per title with its status (pending or watched). With Supabase
-configured, that copy syncs with a `user_titles` table protected by row level security, so
-the same library shows on every device. Every `PUBLIC_*` variable ships in the public bundle:
-use a read-only TMDB key and the Supabase anon key; the build-time login is a closed door, not
-security.
+There is no server of our own. The browser calls TMDB directly and keeps the user's library
+in `localStorage`, one record per title with its status (pending or watched). With Convex
+configured, that copy syncs live with a `titles` table through the functions in `convex/`,
+each scoped to the signed-in user, so the same library shows on every device. Every
+`PUBLIC_*` variable ships in the public bundle: use a read-only TMDB key; the Convex URL is
+public by design; the build-time login is a closed door, not security.
 
 ---
 
@@ -104,7 +104,7 @@ Requires Node 22 and pnpm 11, plus a TMDB v3 API key from
 
 ```bash
 pnpm install
-cp .env.example .env      # set PUBLIC_TMDB_API_KEY; Supabase and PUBLIC_AUTH_* are optional
+cp .env.example .env      # set PUBLIC_TMDB_API_KEY; Convex and PUBLIC_AUTH_* are optional
 pnpm dev
 ```
 
@@ -116,8 +116,8 @@ pnpm dev
 | `pnpm check` | Type and template checks (`astro check`) |
 
 Deploy: enable **Settings > Pages > Source: GitHub Actions**, add the `TMDB_API_KEY` secret
-and, for sync, the `SUPABASE_URL` and `SUPABASE_KEY` variables, then push to `main`. Supabase
-setup: [docs/operations.md](docs/operations.md#supabase). Environment variables,
+and, for sync, the `CONVEX_DEPLOY_KEY` secret, then push to `main`. Convex setup:
+[docs/operations.md](docs/operations.md#convex). Environment variables,
 base path and CI: [docs/operations.md](docs/operations.md).
 
 ---
@@ -129,7 +129,7 @@ cortes-tv/
 ├── src/           # Svelte components, stores and TMDB client, layout, styles
 ├── public/        # Logo, PWA icons and manifest
 ├── scripts/       # Icon generator and docs check
-├── supabase/      # Database schema and row level security
+├── convex/        # Convex functions: schema, auth, library
 ├── docs/          # Domains, operations, workflow and decisions
 ├── DESIGN.md      # Design system
 └── AGENTS.md      # Agent rules and documentation map

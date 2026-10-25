@@ -23,8 +23,8 @@ knowledge lives, and how to keep that knowledge current.
 Cortes TV is a personal movie and TV show tracker with an Apple Liquid Glass look, built for
 one user on desktop and iPhone. It is a fully static site: titles come from TheMovieDB (TMDB)
 straight from the browser, and the user's library (pending and watched titles, ratings and
-watched dates) lives in `localStorage` and, when Supabase is configured, syncs with a
-Supabase table behind an email and password login. JSON export and import serve as backups.
+watched dates) lives in `localStorage` and, when Convex is configured, syncs live with a
+Convex table behind an email and password login. JSON export and import serve as backups.
 The UI copy is in Spanish.
 
 | Layer | Technology |
@@ -32,7 +32,7 @@ The UI copy is in Spanish.
 | Site and build | Astro 5 (static output, one client-only island) |
 | UI | Svelte 5 (runes), TypeScript |
 | Styling | Tailwind CSS 3, design tokens as CSS variables (`DESIGN.md`) |
-| Data | TMDB API v3 (read only), `localStorage`, optional Supabase (auth and sync) |
+| Data | TMDB API v3 (read only), `localStorage`, optional Convex (auth and live sync) |
 | Package manager | pnpm 11 |
 | Hosting | GitHub Pages, deployed by GitHub Actions |
 
@@ -44,6 +44,7 @@ cortes-tv/
 │   ├── workflows/deploy.yml     # Build and deploy to GitHub Pages on push to main
 │   └── workflows/standards.yml  # Docs check and commit message check
 ├── .githooks/                   # commit-msg and pre-commit hooks
+├── convex/                      # Convex functions: schema, auth (Convex Auth), titles; _generated is codegen
 ├── docs/                        # Code style, workflow, operations, decisions, domains
 ├── public/                      # Static assets: logo, PWA icons, web manifest, service worker (sw.js)
 ├── scripts/
@@ -52,10 +53,9 @@ cortes-tv/
 ├── src/
 │   ├── components/              # Svelte components; App.svelte is the root island
 │   ├── layouts/Layout.astro     # HTML shell, PWA meta, no-flash theme script, background
-│   ├── lib/                     # Stores and logic: auth, store, sync, supabase, recommend, tmdb, ui, format, types
+│   ├── lib/                     # Stores and logic: auth, store, sync, convex, recommend, tmdb, ui, format, types
 │   ├── pages/index.astro        # The only page; mounts App client-only
 │   └── styles/global.css        # Design tokens and glass utilities
-├── supabase/schema.sql          # user_titles table and row level security, run once in Supabase
 ├── DESIGN.md                    # Design system (Spanish): type, color, depth, motion
 ├── astro.config.mjs             # Site and base for GitHub Pages, integrations
 └── tailwind.config.js           # Tailwind theme mapped to the CSS tokens
@@ -80,7 +80,7 @@ when the area changes.
 
 | File | Covers |
 |---|---|
-| `auth.md` | Supabase login, build-time gate fallback, sessions |
+| `auth.md` | Convex Auth login, build-time gate fallback, sessions |
 | `catalog.md` | TMDB client, discovery rows, search, title detail data, genres |
 | `library.md` | Pending and watched titles, ratings, watched dates, persistence, sync, backup |
 | `recommendations.md` | The "Para ti" row: seeds, scoring, genre affinity |
@@ -138,8 +138,9 @@ missing from a strict map, or a doc under `docs/` that no `AGENTS.md` mentions.
   examples in `docs/code-style.md`.
 - **UI copy stays in Spanish** (`<html lang="es">`, TMDB `es-ES`); only code, comments and docs
   are English. `DESIGN.md` is Spanish prose and stays so.
-- **Static site only.** No server code: everything runs in the browser, so every `PUBLIC_*`
-  variable ends up in the public bundle (`docs/operations.md`).
+- **Static site, no server of our own.** The app runs in the browser, so every `PUBLIC_*`
+  variable ends up in the public bundle (`docs/operations.md`). The only server code is the
+  Convex functions in `convex/`; each one checks the signed-in user (`docs/decisions.md`, D8).
 - **Follow `DESIGN.md`** for any visual change: reuse its tokens and glass utilities before
   adding a new value. For chrome-layer glass controls (navigation, sheets, toasts, toggles),
   the `liquid-glass` skill in `.agents/skills/` applies, within the `DESIGN.md` tokens.

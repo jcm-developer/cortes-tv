@@ -4,7 +4,7 @@
   import { exportJSON, importJSON, pendingTitles, watchedTitles } from '../lib/store';
   import { showToast, theme, settingsOpen, type Theme } from '../lib/ui';
   import { authRequired, cloudUser, logout } from '../lib/auth';
-  import { cloudEnabled } from '../lib/supabase';
+  import { cloudEnabled } from '../lib/convex';
   import { syncState, syncNow, signOut } from '../lib/sync';
 
   const cloud = cloudEnabled();

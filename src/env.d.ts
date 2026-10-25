@@ -6,8 +6,7 @@ interface ImportMetaEnv {
   readonly PUBLIC_TMDB_REGION?: string;
   readonly PUBLIC_AUTH_USER?: string;
   readonly PUBLIC_AUTH_PASSWORD?: string;
-  readonly PUBLIC_SUPABASE_URL?: string;
-  readonly PUBLIC_SUPABASE_KEY?: string;
+  readonly PUBLIC_CONVEX_URL?: string;
 }
 
 interface ImportMeta {

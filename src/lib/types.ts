@@ -1,9 +1,8 @@
 /**
  * Domain types.
  *
- * The persisted shape maps one to one to a database table (for example Supabase
- * `user_titles`): `titles` holds one row per title, keyed by `mediaType:id`. See
- * `docs/decisions.md`, D6.
+ * The persisted shape maps one to one to the Convex `titles` table: `titles` holds one row
+ * per title, keyed by `mediaType:id`. See `docs/decisions.md`, D6.
  */
 
 /** The two kinds of title TMDB serves that the app handles. */

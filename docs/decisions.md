@@ -66,7 +66,7 @@ Consequences: no custom lists or ordering. One title maps to one database row, w
 later sync simple. Old v1 backups still import.
 
 ## D7. Optional Supabase sync with local-first storage (2026-10-25)
-Status: accepted
+Status: superseded by D8
 Context: the app is used on desktop and as an installed iPhone PWA, whose storage is separate
 from Safari, so `localStorage` alone left each device with its own library. The build-time
 login (D1) is not security.
@@ -78,3 +78,18 @@ as before.
 Consequences: free tier, but a free project pauses after a week without requests. The
 supabase-js client loads lazily. Conflicts are last write wins per title. Still no server code
 of our own: the site stays static.
+
+## D8. Convex instead of Supabase for login and sync (2026-10-25)
+Status: accepted
+Context: D7 was built but never configured. The user prefers Convex: changes reach the other
+device live through a query subscription, and its free plan is limited by usage, not paused
+after a week without requests.
+Decision: Convex Auth (Password provider, one email allowed by `AUTH_ALLOWED_EMAIL`) and a
+`titles` table reached only through `convex/titles.ts`, which scopes every call to the
+signed-in user. The client keeps the local-first design of D7 (dirty-key outbox, the local
+library as the copy the UI reads) and replaces polling with a live subscription. The token
+handling of `@convex-dev/auth/react` is ported to plain TypeScript (`src/lib/convex.ts`)
+because the app is Svelte.
+Consequences: the repository now holds server functions in `convex/`, deployed by CI with a
+deploy key before the static build. Convex Auth needs JWT keys set on the deployment once.
+Without `PUBLIC_CONVEX_URL` the app still runs local only.

@@ -4,7 +4,7 @@
 
 The user's own data: the titles they track, each one either pending (to watch) or watched,
 with a personal 1 to 5 rating and a watched date on watched titles. It persists in
-`localStorage`, syncs with Supabase when it is configured, and can be exported and imported as
+`localStorage`, syncs live with Convex when it is configured, and can be exported and imported as
 JSON for backups.
 
 ## Key files
@@ -13,9 +13,10 @@ JSON for backups.
   `restoreTitle`, `setRating`, `setWatchedAt`, `replaceTitles`, `onLocalChange`, `cleanTitle`,
   `normalize`, `exportJSON`, `importJSON`): state and every mutation.
 - `src/lib/types.ts` (`AppData`, `StoredTitle`, `TitleStatus`): the persisted schema.
-- `src/lib/sync.ts` (`syncState`, `syncNow`, `signOut`, `flush`, `pull`, `adopt`, `forget`):
-  cloud sync.
-- `supabase/schema.sql`: the `user_titles` table and its row level security.
+- `src/lib/sync.ts` (`syncState`, `syncNow`, `signOut`, `flush`, `apply`, `subscribe`,
+  `adopt`, `forget`): cloud sync.
+- `convex/schema.ts` (`titleFields`) and `convex/titles.ts` (`list`, `upsertMany`,
+  `removeMany`): the server table and the only functions that touch it.
 - `src/components/Library.svelte`: Pending and Watched segments with text search, type, genre
   and sort filters.
 - `src/components/TitleSheet.svelte`: status, rating, watched date and remove, from any poster.
@@ -31,9 +32,9 @@ JSON for backups.
   snapshot of the TMDB summary at add time plus `status`, `addedAt`, `updatedAt`, `rating` and
   `watchedAt`.
 
-With Supabase, `user_titles` holds one row per title and user, primary key
-`(user_id, key)`, with the same fields in snake case. Check constraints mirror the invariants
-below. Sync bookkeeping in `localStorage`: `cortes-tv:dirty` (keys changed locally and not yet
+With Convex, the `titles` table holds one row per title and user (`userId` plus the same
+fields, `tmdbId` for `id`), indexed by `by_user_key`. `upsertMany` re-applies the invariants
+below and checks that `key` is `mediaType:tmdbId`. Sync bookkeeping in `localStorage`: `cortes-tv:dirty` (keys changed locally and not yet
 sent) and `cortes-tv:owner` (the user id the local library belongs to).
 
 ## Flow
@@ -46,25 +47,24 @@ sent) and `cortes-tv:owner` (the user id the local library belongs to).
 4. `importJSON` runs the incoming text through `normalize`; `replace` swaps the data, `merge`
    keeps the most recently changed version of each title (`updatedAt`).
 
-Sync (only with Supabase and a signed-in user):
+Sync (only with Convex and a signed-in user):
 
 1. `onLocalChange` marks the changed keys dirty and schedules a `flush` 800 ms later.
-2. `flush` upserts the dirty keys that exist locally and deletes the rest, in chunks of 200;
-   keys changed again while the request was in flight stay dirty. A failure retries with a
-   delay that doubles from 5 s up to 5 min.
-3. `pull` reads every row of the user and replaces the local library, keeping the local
-   version of dirty keys. If a flush finished while the rows were downloading, it starts over
-   (`flushGeneration`). It runs after sign-in, when the connection returns and when the app
-   comes back to the foreground (at most every 30 s); "sync now" in Settings runs both.
-4. On sign-in, `adopt` compares `cortes-tv:owner` with the user: the same user continues; data
+2. `flush` calls `upsertMany` for the dirty keys that exist locally and `removeMany` for the
+   rest, in chunks of 200; keys changed again while the request was in flight stay dirty.
+   Offline, the Convex client holds the mutations until it reconnects; a failure retries with
+   a delay that doubles from 5 s up to 5 min.
+3. `subscribe` keeps a live `titles.list` subscription; `apply` replaces the local library
+   with each server state, keeping the local version of dirty keys. Another device's change
+   shows within a second.
+4. On the server, `upsertMany` keeps a row whose `updatedAt` is newer than the incoming one,
+   so an outdated device never overwrites a newer change.
+5. On sign-in, `adopt` compares `cortes-tv:owner` with the user: the same user continues; data
    of another user is dropped; data with no owner (created before any login) is merged into the
-   account on the next pull, uploading titles the account lacks or holds older.
-5. Only an explicit sign-out (`signOut`) runs `forget`, which clears the local library and the
-   bookkeeping. A session that ends by itself (expired refresh token, paused project) keeps
-   everything; the login shows, and the same user signing in again resumes the sync.
-6. `flush` and `pull` first check that the client holds a session for the expected user
-   (`hasSession`): without one, RLS answers an empty list instead of an error, which a pull
-   would apply as an empty account.
+   account on the first server state, uploading titles the account lacks or holds older.
+6. Only an explicit sign-out (`signOut`) runs `forget`, which clears the local library and the
+   bookkeeping. A session that ends by itself keeps everything; the login shows, and the same
+   user signing in again resumes the sync.
 
 ## Invariants
 
@@ -85,8 +85,11 @@ Sync (only with Supabase and a signed-in user):
   in no list are dropped. Old backups import the same way.
 - Removing a title deletes its rating and date; the toast offers "Deshacer" (`restoreTitle`).
 - Storage write errors (quota) are swallowed silently; export regularly.
-- Conflicts are last write wins per title: a dirty local title overwrites the server row on
-  flush. Signing out with dirty keys loses them; Settings asks first.
+- Conflicts are last write wins per title, by `updatedAt` (device clocks). Deletes always win.
+  Signing out with dirty keys loses them; Settings asks first.
+- `titles.list` answers null without a session; `apply` ignores it, so a lost session never
+  reads as an empty account. Convex resolves a mutation only after subscriptions include it, so
+  a key leaves the dirty set no earlier than the server state that holds it.
 - A pull replaces the library without notifying `onLocalChange`, so server data is never sent
   back as a local change. `replaceTitles` writes storage at once (no debounce), so a closed tab
   never keeps a signed-out user's titles.
@@ -95,6 +98,6 @@ Sync (only with Supabase and a signed-in user):
 
 ## Related
 
-- `docs/decisions.md`, D6: why two statuses replaced user lists; D7: why Supabase.
+- `docs/decisions.md`, D6: why two statuses replaced user lists; D8: why Convex.
 - `docs/domains/auth.md`: the session that sync needs.
 - `docs/domains/catalog.md`: where the snapshots come from.
