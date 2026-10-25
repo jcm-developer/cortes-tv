@@ -31,7 +31,7 @@
 
 **Your library**
 - Two lists: Pending and Watched. Mark any title from its poster or its detail.
-- Rate watched titles from 1 to 5 and record the date you watched them.
+- Rate watched titles from 1 to 5.
 - Search, filter by type and genre, sort by date, your rating, year, title or TMDB score.
 - Undo a removal from the toast.
 

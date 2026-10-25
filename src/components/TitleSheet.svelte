@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** Renders the bottom sheet that sets a title's status, rating and watched date, or removes it. */
+  /** Renders the bottom sheet that sets a title's status and rating, or removes it. */
   import Sheet from './Sheet.svelte';
   import Icon from './Icon.svelte';
   import StarRating from './StarRating.svelte';
@@ -9,12 +9,11 @@
     summaryKey,
     setStatus,
     setRating,
-    setWatchedAt,
     removeTitle,
     restoreTitle,
   } from '../lib/store';
   import { img, ImageSize } from '../lib/tmdb';
-  import { mediaTypeLabel, todayDate } from '../lib/format';
+  import { mediaTypeLabel } from '../lib/format';
   import type { TitleStatus } from '../lib/types';
 
   const target = $derived($titleSheetTarget);
@@ -29,9 +28,6 @@
       showToast('Añadido a Pendientes');
       closeTitleSheet();
     }
-  }
-  function onWatched(e: Event) {
-    setWatchedAt(key, (e.target as HTMLInputElement).value || null);
   }
   function onRemove() {
     if (!stored) return;
@@ -78,15 +74,9 @@
     </div>
 
     {#if stored?.status === 'watched'}
-      <div class="mt-5 flex flex-col gap-3.5 animate-fade-in">
-        <div>
-          <p class="text-[11px] font-medium uppercase tracking-wide text-muted mb-1.5">Tu valoración</p>
-          <StarRating value={stored.rating} onChange={(v) => setRating(key, v)} size={34} showLabel />
-        </div>
-        <label class="inline-flex items-center gap-2 self-start rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-3.5 py-2">
-          <span class="text-sm text-muted">Vista el</span>
-          <input type="date" value={stored.watchedAt ?? ''} oninput={onWatched} max={todayDate()} class="bg-transparent border-none outline-none text-content [color-scheme:light] dark:[color-scheme:dark]" />
-        </label>
+      <div class="mt-5 animate-fade-in">
+        <p class="text-[11px] font-medium uppercase tracking-wide text-muted mb-1.5">Tu valoración</p>
+        <StarRating value={stored.rating} onChange={(v) => setRating(key, v)} size={34} showLabel />
       </div>
     {/if}
 

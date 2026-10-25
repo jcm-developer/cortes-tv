@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** Renders the full-screen detail of `detailTarget`: status, rating, watched date, synopsis, cast and similar titles. */
+  /** Renders the full-screen detail of `detailTarget`: status, rating, synopsis, cast and similar titles. */
   import Icon from './Icon.svelte';
   import Carousel from './Carousel.svelte';
   import PosterCard from './PosterCard.svelte';
@@ -7,8 +7,8 @@
   import { getDetail, recommendationsFor, img, ImageSize, TmdbError } from '../lib/tmdb';
   import type { MediaDetail, MediaSummary, TitleStatus, WatchProvider } from '../lib/types';
   import { detailTarget, closeDetail, showToast } from '../lib/ui';
-  import { appData, setStatus, setRating, setWatchedAt, removeTitle, restoreTitle } from '../lib/store';
-  import { formatRuntime, formatVote, mediaTypeLabel, todayDate } from '../lib/format';
+  import { appData, setStatus, setRating, removeTitle, restoreTitle } from '../lib/store';
+  import { formatRuntime, formatVote, mediaTypeLabel } from '../lib/format';
 
   const target = $derived($detailTarget);
 
@@ -78,9 +78,6 @@
     const snapshot = stored;
     removeTitle(key);
     showToast('Quitado de tu biblioteca', { label: 'Deshacer', run: () => restoreTitle(snapshot) });
-  }
-  function onWatched(e: Event) {
-    setWatchedAt(key, (e.target as HTMLInputElement).value || null);
   }
 
   function metaLine(): string {
@@ -153,13 +150,7 @@
         {#if stored?.status === 'watched'}
           <section class="mt-5 animate-fade-in">
             <h2 class="text-[11px] font-medium uppercase tracking-wide text-muted mb-2">Tu valoración</h2>
-            <div class="flex flex-col gap-3">
-              <StarRating value={stored.rating} onChange={(v) => setRating(key, v)} showLabel />
-              <label class="inline-flex items-center gap-2 self-start rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-3.5 py-2">
-                <span class="text-sm text-muted">Vista el</span>
-                <input type="date" value={stored.watchedAt ?? ''} oninput={onWatched} max={todayDate()} class="bg-transparent border-none outline-none text-content [color-scheme:light] dark:[color-scheme:dark]" />
-              </label>
-            </div>
+            <StarRating value={stored.rating} onChange={(v) => setRating(key, v)} showLabel />
           </section>
         {/if}
 

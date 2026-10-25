@@ -19,7 +19,7 @@ JSON for backups.
   `removeMany`): the server table and the only functions that touch it.
 - `src/components/Library.svelte`: Pending and Watched segments with text search, type, genre
   and sort filters.
-- `src/components/TitleSheet.svelte`: status, rating, watched date and remove, from any poster.
+- `src/components/TitleSheet.svelte`: status, rating and remove, from any poster.
 - `src/components/Detail.svelte`: the same actions inline in the title detail.
 - `src/components/Settings.svelte`: export and import (merge or replace).
 
@@ -72,7 +72,9 @@ Sync (only with Convex and a signed-in user):
   `setRating` and `setWatchedAt` ignore titles that are not watched; `cleanTitle` drops them on
   load.
 - Marking a title watched sets today (local date, `todayDate`) as its watched date when it has
-  none.
+  none. The date is internal: the UI never shows or edits it (the user does not track when a
+  title was watched); it only orders "Vistas recientemente" and the recommendation seeds.
+  `setWatchedAt` stays for imports and future use.
 - Every title that enters the app (storage, import, server) goes through `cleanTitle`, which
   rejects an invalid media type or id and coerces every other field.
 - `updatedAt` changes on every mutation; it decides merges and sync conflicts.
