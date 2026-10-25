@@ -3,8 +3,9 @@
   import Icon from './Icon.svelte';
 
   /**
-   * Renders a horizontal row that bleeds to the screen edges, with a heading, an optional "see
-   * all" action and, on devices with a pointer, scroll buttons in the heading.
+   * Renders a horizontal row with a heading, an optional "see all" action and, on devices with a
+   * pointer, scroll buttons in the heading. On touch it bleeds to the screen edges; with a mouse
+   * it stays inside the page column and fades out on the sides that can still scroll.
    *
    * @param title - The heading.
    * @param onSeeAll - Shows a "Ver todo" action that calls it.
@@ -60,7 +61,13 @@
     </header>
   {/if}
 
-  <div bind:this={track} onscroll={update} class="h-scroll gap-3 sm:gap-4">
+  <div
+    bind:this={track}
+    onscroll={update}
+    class="h-scroll gap-3 sm:gap-4"
+    data-more-left={canLeft || undefined}
+    data-more-right={canRight || undefined}
+  >
     {@render children()}
   </div>
 </section>

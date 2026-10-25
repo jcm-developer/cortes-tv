@@ -199,6 +199,26 @@
     scroll-snap-align: start;
     flex: 0 0 auto;
   }
+  /* With a mouse the page is a centred column: the row stays inside it and fades out on the
+     sides that still have content (`data-more-left` / `data-more-right`, set by Carousel). */
+  @media (hover: hover) and (pointer: fine) {
+    .h-scroll {
+      margin-inline: 0;
+      padding-inline: 0;
+      scroll-padding-inline: 0;
+      --fade-l: 0px;
+      --fade-r: 0px;
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+      mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+      transition: --fade-l 0.25s ease, --fade-r 0.25s ease;
+    }
+    .h-scroll[data-more-left] {
+      --fade-l: 3rem;
+    }
+    .h-scroll[data-more-right] {
+      --fade-r: 3rem;
+    }
+  }
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -209,6 +229,18 @@
   .page-x {
     padding-inline: var(--page-x);
   }
+}
+
+/* Typed so the row edge fades of `.h-scroll` can transition */
+@property --fade-l {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --fade-r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
 }
 
 /* Atmospheric background: soft colour behind the glass, painted once (no blurred layers) */

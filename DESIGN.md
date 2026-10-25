@@ -97,7 +97,7 @@ Los controles de vidrio **crecen** al pulsarlos (`--glass-press-scale: 1.08`); n
 ### Contenido (opaco)
 
 - **Póster** (`PosterCard.svelte`): `rounded-xl`, `shadow-poster`, título y "año · tipo" debajo. El botón de la esquina es un círculo sólido (negro al 55%, acento si está pendiente, verde si está vista), nunca vidrio: una fila tendría decenas de desenfoques.
-- **Fila** (`Carousel.svelte`): sangra hasta los bordes de la pantalla (`.h-scroll` lee `--page-x` de `.page-x`) y ajusta al margen. Con ratón aparecen dos botones de desplazamiento en la cabecera de la fila.
+- **Fila** (`Carousel.svelte`): en táctil sangra hasta los bordes de la pantalla (`.h-scroll` lee `--page-x` de `.page-x`) y ajusta al margen. Con ratón se queda dentro de la columna, alineada con la barra superior y las flechas, y se difumina (3rem) en los lados por los que aún hay contenido; además aparecen dos botones de desplazamiento en la cabecera de la fila.
 - **Chip** (`.chip`): relleno `fill`; activo en color de texto invertido (`aria-pressed="true"`).
 - **Campo** (`.field`): relleno `fill`, anillo de acento al enfocar.
 - **Lista agrupada** (`.group-list`, `.group-label`): estilo Ajustes de iOS dentro de hojas.
