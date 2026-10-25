@@ -1,6 +1,7 @@
 <script lang="ts">
-  /** Renders the Home tab: the user's pending titles and TMDB discovery rows, or a setup hint without an API key. */
+  /** Renders the Home tab: recommendations, the user's pending titles and TMDB discovery rows, or a setup hint without an API key. */
   import DiscoverRow from './DiscoverRow.svelte';
+  import ForYouRow from './ForYouRow.svelte';
   import Carousel from './Carousel.svelte';
   import PosterCard from './PosterCard.svelte';
   import { pendingTitles, toSummary } from '../lib/store';
@@ -37,6 +38,8 @@
       </p>
     </div>
   {:else}
+    <ForYouRow />
+
     {#if $pendingTitles.length > 0}
       <Carousel title="Tus pendientes" subtitle={String($pendingTitles.length)} onSeeAll={() => openLibrary('pending')}>
         {#each $pendingTitles.slice(0, 20) as t (t.key)}

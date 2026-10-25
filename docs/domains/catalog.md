@@ -57,4 +57,5 @@ TMDB is called straight from the browser with a read-only key.
 ## Related
 
 - `docs/domains/library.md`: stored titles are snapshots of `MediaSummary`.
+- `docs/domains/recommendations.md`: the "Para ti" row built on `recommendationsFor`.
 - `docs/operations.md`: the TMDB variables.

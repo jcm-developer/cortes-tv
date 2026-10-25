@@ -52,7 +52,7 @@ cortes-tv/
 ├── src/
 │   ├── components/              # Svelte components; App.svelte is the root island
 │   ├── layouts/Layout.astro     # HTML shell, PWA meta, no-flash theme script, background
-│   ├── lib/                     # Stores and logic: auth, store, sync, supabase, tmdb, ui, format, types
+│   ├── lib/                     # Stores and logic: auth, store, sync, supabase, recommend, tmdb, ui, format, types
 │   ├── pages/index.astro        # The only page; mounts App client-only
 │   └── styles/global.css        # Design tokens and glass utilities
 ├── supabase/schema.sql          # user_titles table and row level security, run once in Supabase
@@ -83,6 +83,7 @@ when the area changes.
 | `auth.md` | Supabase login, build-time gate fallback, sessions |
 | `catalog.md` | TMDB client, discovery rows, search, title detail data, genres |
 | `library.md` | Pending and watched titles, ratings, watched dates, persistence, sync, backup |
+| `recommendations.md` | The "Para ti" row: seeds, scoring, genre affinity |
 | `ui.md` | App shell, navigation, detail view, sheets, theme, toasts |
 
 ## 4. Keeping the docs current

@@ -20,6 +20,10 @@
 
 ## Features
 
+**Recommendations**
+- "Para ti" on Home: titles picked from what you watched, your star ratings, your favourite
+  genres and the TMDB score, computed in the browser.
+
 **Discover and search**
 - Home rows: trending this week, top rated movies and shows, classics, now playing, popular
   shows.
