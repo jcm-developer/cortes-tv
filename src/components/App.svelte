@@ -33,6 +33,20 @@
     return () => window.removeEventListener('popstate', onHistoryBack);
   });
 
+  // iOS can keep the page offset after the keyboard closes, which shifts every fixed bar;
+  // scrolling to the current position makes it drop the stale offset.
+  $effect(() => {
+    const onFocusOut = (e: FocusEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (!t?.matches('input, textarea')) return;
+      setTimeout(() => {
+        if (!document.activeElement?.matches('input, textarea')) window.scrollTo(window.scrollX, window.scrollY);
+      }, 50);
+    };
+    document.addEventListener('focusout', onFocusOut);
+    return () => document.removeEventListener('focusout', onFocusOut);
+  });
+
   // While an overlay is open the page behind it must not scroll (iOS scrolls it otherwise).
   $effect(() => {
     const locked = !!$detailTarget || !!$titleSheetTarget || $settingsOpen;

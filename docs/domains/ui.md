@@ -55,7 +55,9 @@ behaviour.
    rendering the last target while it leaves.
 8. While the detail view or a sheet is open, `App.svelte` puts `is-locked` on `<html>`
    (`overflow: hidden`), so iOS does not scroll the page behind the overlay.
-9. In production, `Layout.astro` registers `public/sw.js` under the base path. It serves pages
+9. When a text field loses focus and no other one takes it, `App.svelte` scrolls the window to
+   its current position (`focusout`), so iOS drops the viewport offset the keyboard left.
+10. In production, `Layout.astro` registers `public/sw.js` under the base path. It serves pages
    network first with the cached shell as fallback, hashed `/assets/` cache first, TMDB images
    cache first (400 entries) and TMDB API answers network first with the last answer as
    fallback (80 entries), so the installed app opens offline with the library and the last
@@ -76,6 +78,10 @@ behaviour.
 
 ## Gotchas
 
+- iOS can leave the page offset after the keyboard closes, shifting every `fixed` bar (the
+  tab bar floats, the top bar hides under the status bar). Fields are only autofocused with a
+  fine pointer (`Search.svelte`, `Login.svelte`), and `App.svelte` resets the offset on
+  `focusout`; do not add a touch autofocus.
 - The theme script in `Layout.astro` duplicates the logic of `applyTheme`; change both.
 - The service worker only runs in production builds (`pnpm build && pnpm preview` to try it).
   Bump `VERSION` in `sw.js` to drop every cache; a new deploy is picked up anyway on the next

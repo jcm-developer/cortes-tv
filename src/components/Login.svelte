@@ -12,8 +12,9 @@
   let busy = $state(false);
   let userEl: HTMLInputElement;
 
+  // Autofocus with a mouse only; on touch the keyboard would cover half the form at once.
   $effect(() => {
-    userEl?.focus();
+    if (matchMedia('(pointer: fine)').matches) userEl?.focus();
   });
 
   async function onSubmit(e: Event) {
