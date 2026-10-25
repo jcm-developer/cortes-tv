@@ -17,8 +17,8 @@ JSON for backups.
   `adopt`, `forget`): cloud sync.
 - `convex/schema.ts` (`titleFields`) and `convex/titles.ts` (`list`, `upsertMany`,
   `removeMany`): the server table and the only functions that touch it.
-- `src/components/Library.svelte`: Pending and Watched segments with text search, type, genre
-  and sort filters.
+- `src/components/Library.svelte`: Pending and Watched segments with a text search and, behind
+  the button next to it, a filter sheet (type, sort, genre) whose button shows how many are set.
 - `src/components/TitleSheet.svelte`: status, rating and remove, from any poster.
 - `src/components/Detail.svelte`: the same actions inline in the title detail.
 - `src/components/Settings.svelte`: export and import (merge or replace).

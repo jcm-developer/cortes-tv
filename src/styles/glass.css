@@ -8,6 +8,8 @@
    - Only the components the app uses, without liquid-glass.js: Svelte drives selection and
      the sliding indicators, and touch devices (the main target) never refract anyway.
    - Sheets and toasts carry a denser tint so long text stays legible over posters.
+   - `.glass-topbar` is a pill nav bar built from the skill's toolbar and segmented control:
+     clear at the top of the page, glass once content scrolls under it.
    ========================================================================== */
 
 /* ── Primitives: light scheme (default theme) ── */
@@ -78,7 +80,7 @@
 }
 
 /* ── Derived tokens, recomputed per element so a local primitive override works ── */
-:where(.glass-surface, .glass-btn, .glass-tabs, .glass-segmented, .glass-search, .glass-popover, .glass-toast, .glass-sheet) {
+:where(.glass-surface, .glass-btn, .glass-tabs, .glass-segmented, .glass-search, .glass-topbar, .glass-toast, .glass-sheet) {
   --glass-bg: rgb(var(--glass-tint-rgb) / var(--glass-tint));
   --glass-bg-hover: rgb(var(--glass-tint-rgb) / calc(var(--glass-tint) + 0.08));
   --glass-shadow-rim:
@@ -100,7 +102,7 @@
 .glass-tabs,
 .glass-segmented,
 .glass-search,
-.glass-popover,
+.glass-topbar,
 .glass-toast,
 .glass-sheet {
   position: relative;
@@ -355,41 +357,58 @@
   color: var(--glass-text-secondary);
 }
 
-/* ── Popover menu (the Select dropdown) ── */
-.glass-popover {
-  --glass-tint: var(--glass-tint-dense);
-  padding: 6px;
-  border-radius: var(--glass-radius-md);
-  box-shadow: var(--glass-shadow-rim), var(--glass-shadow-elevated);
-  transform-origin: top left;
-  animation: glass-pop-in var(--glass-duration-spring) var(--glass-easing-spring);
-}
-@keyframes glass-pop-in {
-  from {
-    opacity: 0;
-    scale: 0.85;
-  }
-}
-.glass-popover__item {
+/* ── Top bar: brand, tabs (desktop) and actions in one pill ── */
+.glass-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-  min-height: 42px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: var(--glass-radius-sm);
-  background: none;
-  color: inherit;
-  font: 500 0.9375rem var(--glass-font-sans);
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--glass-duration-fast);
+  gap: 8px;
+  height: var(--topbar-h);
+  padding: 0 8px 0 16px;
+  border-radius: 9999px;
+  transition:
+    background var(--glass-duration-fast) var(--glass-easing-smooth),
+    box-shadow var(--glass-duration-fast) var(--glass-easing-smooth);
 }
-.glass-popover__item:hover,
-.glass-popover__item[aria-selected='true'] {
-  background: var(--glass-fill);
+/* At the top of the page nothing scrolls under the bar yet, so it stays clear. */
+.glass-topbar.is-clear {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+.glass-topbar__links {
+  position: relative;
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  padding: 4px;
+}
+.glass-topbar__links > .glass-indicator {
+  --inset: 4px;
+}
+.glass-topbar__link {
+  position: relative;
+  z-index: 1;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9999px;
+  background: none;
+  color: var(--glass-text-secondary);
+  font: 500 0.9375rem/1 var(--glass-font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--glass-duration-fast);
+}
+@media (hover: hover) {
+  .glass-topbar__link:hover {
+    color: var(--glass-text-primary);
+  }
+}
+.glass-topbar__link[aria-current='page'] {
+  color: var(--glass-text-primary);
+  font-weight: 600;
 }
 
 /* ── Toast ── */
@@ -427,7 +446,14 @@
     translate: 0 100%;
   }
 }
-@media (min-width: 640px) {
+/* Phones: attached to the bottom edge, square bottom corners (`Sheet.svelte`). */
+@media (max-width: 767px) {
+  .glass-sheet--bottom {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+@media (min-width: 768px) {
   .glass-sheet {
     animation: glass-modal-in var(--glass-duration-spring) var(--glass-easing-spring);
   }
@@ -444,7 +470,7 @@
 .glass-btn:focus-visible,
 .glass-tabs__tab:focus-visible,
 .glass-segmented__option:focus-visible,
-.glass-popover__item:focus-visible {
+.glass-topbar__link:focus-visible {
   outline: 2px solid #000000;
   outline-offset: 2px;
   box-shadow: var(--glass-focus-ring);
@@ -462,7 +488,7 @@
   .glass-tabs,
   .glass-segmented,
   .glass-search,
-  .glass-popover,
+  .glass-topbar,
   .glass-toast,
   .glass-sheet {
     background: var(--glass-solid-bg);
@@ -488,7 +514,7 @@
   .glass-tabs,
   .glass-segmented,
   .glass-search,
-  .glass-popover,
+  .glass-topbar,
   .glass-toast,
   .glass-sheet {
     background: var(--glass-solid-bg);
@@ -511,10 +537,11 @@
   .glass-indicator,
   .glass-tabs__tab,
   .glass-segmented__option,
-  .glass-search {
+  .glass-search,
+  .glass-topbar,
+  .glass-topbar__link {
     transition: none;
   }
-  .glass-popover,
   .glass-toast,
   .glass-sheet {
     animation: none;
@@ -527,7 +554,7 @@
   .glass-tabs,
   .glass-segmented,
   .glass-search,
-  .glass-popover,
+  .glass-topbar,
   .glass-toast,
   .glass-sheet {
     background: Canvas;
@@ -545,6 +572,7 @@
     forced-color-adjust: none;
   }
   .glass-tabs__tab[aria-current='page'],
+  .glass-topbar__link[aria-current='page'],
   .glass-segmented__option[aria-checked='true'] {
     color: HighlightText;
     forced-color-adjust: none;

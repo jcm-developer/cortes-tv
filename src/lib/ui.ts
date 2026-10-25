@@ -16,6 +16,20 @@ export const activeTab = writable<Tab>('home');
 export const librarySegment = writable<TitleStatus>('pending');
 
 /**
+ * Shows a tab; pressing the tab already on screen scrolls back to the top, as on iOS.
+ *
+ * @param tab - The tab to show.
+ */
+export function selectTab(tab: Tab) {
+  if (get(activeTab) === tab) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  activeTab.set(tab);
+  window.scrollTo({ top: 0 });
+}
+
+/**
  * Opens the library on one segment.
  *
  * @param segment - Pending or watched.
@@ -25,7 +39,7 @@ export function openLibrary(segment: TitleStatus) {
   activeTab.set('library');
 }
 
-/** Whether the settings and backup sheet is open; it opens from the button in each tab header. */
+/** Whether the settings and backup sheet is open; it opens from the button in the top bar. */
 export const settingsOpen = writable<boolean>(false);
 
 /** The title the detail view shows. */
@@ -114,6 +128,14 @@ function readTheme(): Theme {
 /** The theme choice; every change is applied to the page and stored. */
 export const theme = writable<Theme>(readTheme());
 
+/** Whether the dark scheme is on screen, after resolving `system`; `applyTheme` keeps it current. */
+export const darkActive = writable<boolean>(false);
+
+/** Switches to the scheme not on screen, as an explicit choice (the top bar toggle). */
+export function toggleTheme() {
+  theme.set(get(darkActive) ? 'light' : 'dark');
+}
+
 /**
  * Applies a theme by toggling the `dark` class on `<html>`.
  *
@@ -126,6 +148,7 @@ export function applyTheme(t: Theme) {
   if (typeof document === 'undefined') return;
   const dark = t === 'dark' || (t === 'system' && systemPrefersDark());
   document.documentElement.classList.toggle('dark', dark);
+  darkActive.set(dark);
 }
 
 theme.subscribe((t) => {

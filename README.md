@@ -46,8 +46,9 @@
 **App**
 - Apple TV look with Liquid Glass chrome built on the vendored `liquid-glass` skill
   ([DESIGN.md](DESIGN.md)), light, dark and system themes with no flash on load.
-- One layout for iPhone and desktop: a floating glass tab bar, iPhone safe areas, installable
-  as a PWA that opens offline (service worker).
+- iPhone: a glass top bar and a floating tab bar of the same width, bottom sheets you can drag
+  down. Desktop: one glass navigation bar on top and a narrower content column. Installable as a
+  PWA that opens offline (service worker).
 - Without Convex: an optional build-time login and data in `localStorage` only.
 - JSON export and import (replace or merge), including backups from the old list format.
 

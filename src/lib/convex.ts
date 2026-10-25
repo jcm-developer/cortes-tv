@@ -153,23 +153,19 @@ export interface SignInResult {
 }
 
 /**
- * Signs in with email and password, or creates the account the first time.
+ * Signs in with email and password. Accounts are never created from the app
+ * (`docs/domains/auth.md`).
  *
  * @param email - The account email.
- * @param password - The password, at least 8 characters for a new account.
- * @param flow - `signIn` for an existing account, `signUp` to create it.
+ * @param password - The password.
  * @return The user id on success, or an error code.
  */
-export async function passwordSignIn(
-  email: string,
-  password: string,
-  flow: 'signIn' | 'signUp',
-): Promise<SignInResult> {
+export async function passwordSignIn(email: string, password: string): Promise<SignInResult> {
   try {
     const { live, http } = await getClients();
     const result = await http.action(api.auth.signIn, {
       provider: 'password',
-      params: { email: email.trim().toLowerCase(), password, flow },
+      params: { email: email.trim().toLowerCase(), password, flow: 'signIn' },
     });
     if (!result.tokens) return { userId: null, error: 'invalid' };
     writeTokens(result.tokens);

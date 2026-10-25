@@ -11,6 +11,8 @@
 
   let fileInput: HTMLInputElement;
   let importMode = $state<'replace' | 'merge'>('merge');
+  /** Whether the "unsynced changes will be lost" confirmation is showing. */
+  let confirmLogout = $state(false);
 
   function onExport() {
     exportJSON();
@@ -30,13 +32,11 @@
   }
 
   function onLogout() {
-    if (
-      cloud &&
-      $syncState.pending > 0 &&
-      !confirm(`Hay ${$syncState.pending} cambios sin sincronizar que se perderán. ¿Cerrar sesión igualmente?`)
-    ) {
+    if (cloud && $syncState.pending > 0 && !confirmLogout) {
+      confirmLogout = true;
       return;
     }
+    confirmLogout = false;
     settingsOpen.set(false);
     void (cloud ? signOut() : logout());
   }
@@ -145,8 +145,18 @@
   </section>
 
   {#if authRequired()}
-    <button type="button" class="glass-btn glass-btn--plain glass-btn--danger w-full" onclick={onLogout}>
-      <Icon name="logout" size={18} /> Cerrar sesión
-    </button>
+    <section class="flex flex-col gap-2.5">
+      {#if confirmLogout}
+        <p class="px-1 text-[15px] text-danger" role="alert">
+          Hay {$syncState.pending} {$syncState.pending === 1 ? 'cambio' : 'cambios'} sin sincronizar que se perderán.
+        </p>
+      {/if}
+      <button type="button" class="glass-btn glass-btn--plain glass-btn--danger w-full" onclick={onLogout}>
+        <Icon name="logout" size={18} /> {confirmLogout ? 'Cerrar sesión igualmente' : 'Cerrar sesión'}
+      </button>
+      {#if confirmLogout}
+        <button type="button" class="glass-btn glass-btn--plain w-full" onclick={() => (confirmLogout = false)}>Cancelar</button>
+      {/if}
+    </section>
   {/if}
 </div>

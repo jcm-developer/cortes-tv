@@ -4,8 +4,6 @@
   import ForYouRow from './ForYouRow.svelte';
   import Carousel from './Carousel.svelte';
   import PosterCard from './PosterCard.svelte';
-  import PageHeader from './PageHeader.svelte';
-  import Logo from './Logo.svelte';
   import MissingKey from './MissingKey.svelte';
   import { pendingTitles, toSummary } from '../lib/store';
   import { hasApiKey, trending, topRatedMovies, topRatedTv, classicMovies, popularTv, nowPlaying } from '../lib/tmdb';
@@ -23,9 +21,7 @@
 </script>
 
 <div class="animate-fade-in">
-  <PageHeader>
-    <h1><Logo height={30} /></h1>
-  </PageHeader>
+  <h1 class="sr-only">Inicio</h1>
 
   {#if !hasApiKey()}
     <MissingKey />

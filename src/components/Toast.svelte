@@ -9,9 +9,9 @@
 </script>
 
 {#if $toast}
-  <!-- Above the tab bar, which sits under every screen except the detail view -->
+  <!-- Above the phone tab bar, which sits under every screen except the detail view -->
   <div
-    class="glass-toast fixed left-1/2 -translate-x-1/2 z-[200] bottom-[calc(var(--tabbar-bottom)+4.75rem)] {$toast.action ? '' : 'pr-5'}"
+    class="glass-toast fixed left-1/2 -translate-x-1/2 z-[200] bottom-[var(--toast-bottom)] {$toast.action ? '' : 'pr-5'}"
     role="status"
     aria-live="polite"
   >

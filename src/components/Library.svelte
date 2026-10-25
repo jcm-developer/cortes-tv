@@ -1,8 +1,8 @@
 <script lang="ts">
-  /** Renders the Library tab: Pending and Watched segments with text, type, genre and sort filters. */
+  /** Renders the Library tab: Pending and Watched segments, a text filter and a filter sheet (type, sort, genre). */
   import Icon from './Icon.svelte';
   import PosterCard from './PosterCard.svelte';
-  import Select from './Select.svelte';
+  import Sheet from './Sheet.svelte';
   import PageHeader from './PageHeader.svelte';
   import { getGenreMap } from '../lib/tmdb';
   import { pendingTitles, watchedTitles, toSummary } from '../lib/store';
@@ -19,9 +19,15 @@
   let filterType = $state<'all' | MediaType>('all');
   let filterGenre = $state<number | 'all'>('all');
   let sortKey = $state<SortKey>('recent');
+  let filtersOpen = $state(false);
 
   function resetFilters() {
     query = '';
+    filterType = 'all';
+    filterGenre = 'all';
+    sortKey = 'recent';
+  }
+  function resetSheetFilters() {
     filterType = 'all';
     filterGenre = 'all';
     sortKey = 'recent';
@@ -94,7 +100,16 @@
     if (!rated.length) return null;
     return (rated.reduce((s, t) => s + (t.rating ?? 0), 0) / rated.length).toFixed(1);
   });
+  /** Settings changed in the filter sheet, for the badge on its button; sort counts too. */
+  const sheetFilterCount = $derived(
+    Number(filterType !== 'all') + Number(filterGenre !== 'all') + Number(sortKey !== 'recent'),
+  );
   const filtersActive = $derived(!!query.trim() || filterType !== 'all' || filterGenre !== 'all');
+  const types: { value: 'all' | MediaType; label: string }[] = [
+    { value: 'all', label: 'Todo' },
+    { value: 'movie', label: 'Películas' },
+    { value: 'tv', label: 'Series' },
+  ];
 </script>
 
 <div class="animate-fade-in">
@@ -114,37 +129,38 @@
   </div>
 
   {#if segmentTitles.length > 0}
-    <div class="mt-4 flex items-center gap-2.5 h-11 px-3.5 rounded-xl bg-fill text-muted max-w-xl">
-      <Icon name="search" size={18} />
-      <input
-        type="search"
-        placeholder={$librarySegment === 'pending' ? 'Buscar en pendientes' : 'Buscar en vistas'}
-        bind:value={query}
-        enterkeyhint="search"
-        autocomplete="off"
-        spellcheck="false"
-        aria-label="Buscar en la biblioteca"
-        class="flex-1 min-w-0 bg-transparent border-none outline-none text-content placeholder:text-muted"
-      />
-      {#if query}
-        <button type="button" class="grid h-7 w-7 place-items-center rounded-full bg-fill text-content" onclick={() => (query = '')} aria-label="Limpiar búsqueda">
-          <Icon name="close" size={15} />
-        </button>
-      {/if}
-    </div>
-
-    <div class="h-scroll items-center gap-2 py-3">
-      <button type="button" class="chip" aria-pressed={filterType === 'all'} onclick={() => (filterType = 'all')}>Todo</button>
-      <button type="button" class="chip" aria-pressed={filterType === 'movie'} onclick={() => (filterType = 'movie')}>Películas</button>
-      <button type="button" class="chip" aria-pressed={filterType === 'tv'} onclick={() => (filterType = 'tv')}>Series</button>
-      <Select bind:value={sortKey} ariaLabel="Ordenar por" options={sortOptions} />
-      {#if availableGenres.length > 0}
-        <Select
-          bind:value={filterGenre}
-          ariaLabel="Filtrar por género"
-          options={[{ value: 'all', label: 'Todos los géneros' }, ...availableGenres.map((g) => ({ value: g.id, label: g.name }))]}
+    <div class="mt-4 mb-3 flex items-center gap-2 max-w-xl">
+      <div class="flex flex-1 min-w-0 items-center gap-2.5 h-11 px-3.5 rounded-xl bg-fill text-muted">
+        <Icon name="search" size={18} />
+        <input
+          type="search"
+          placeholder={$librarySegment === 'pending' ? 'Buscar en pendientes' : 'Buscar en vistas'}
+          bind:value={query}
+          enterkeyhint="search"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Buscar en la biblioteca"
+          class="flex-1 min-w-0 bg-transparent border-none outline-none text-content placeholder:text-muted"
         />
-      {/if}
+        {#if query}
+          <button type="button" class="grid h-7 w-7 place-items-center rounded-full bg-fill text-content" onclick={() => (query = '')} aria-label="Limpiar búsqueda">
+            <Icon name="close" size={15} />
+          </button>
+        {/if}
+      </div>
+      <button
+        type="button"
+        class="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl transition-colors
+               {sheetFilterCount ? 'bg-accent text-white' : 'bg-fill text-content'}"
+        onclick={() => (filtersOpen = true)}
+        aria-label={sheetFilterCount ? `Filtros, ${sheetFilterCount} activos` : 'Filtros'}
+        aria-haspopup="dialog"
+      >
+        <Icon name="sliders" size={20} />
+        {#if sheetFilterCount}
+          <span class="absolute -top-1.5 -right-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-content px-1 text-[11px] font-bold text-bg tabular-nums" aria-hidden="true">{sheetFilterCount}</span>
+        {/if}
+      </button>
     </div>
   {/if}
 
@@ -179,3 +195,56 @@
     </div>
   {/if}
 </div>
+
+<Sheet open={filtersOpen} title="Filtros" onClose={() => (filtersOpen = false)}>
+  <div class="flex flex-col gap-6">
+    <section>
+      <p class="group-label">Tipo</p>
+      <div class="glass-segmented glass-segmented--plain w-full" role="radiogroup" aria-label="Tipo">
+        <span class="glass-indicator" style="--count: {types.length}; --index: {Math.max(0, types.findIndex((t) => t.value === filterType))}" aria-hidden="true"></span>
+        {#each types as t (t.value)}
+          <button type="button" class="glass-segmented__option" role="radio" aria-checked={filterType === t.value} onclick={() => (filterType = t.value)}>
+            {t.label}
+          </button>
+        {/each}
+      </div>
+    </section>
+
+    <section>
+      <p class="group-label">Ordenar por</p>
+      <div class="group-list" role="radiogroup" aria-label="Ordenar por">
+        {#each sortOptions as o (o.value)}
+          <button
+            type="button"
+            class="flex items-center justify-between gap-3 min-h-11 px-3.5 text-left font-medium active:bg-fill"
+            role="radio"
+            aria-checked={sortKey === o.value}
+            onclick={() => (sortKey = o.value)}
+          >
+            {o.label}
+            {#if sortKey === o.value}<span class="text-accent"><Icon name="check" size={18} /></span>{/if}
+          </button>
+        {/each}
+      </div>
+    </section>
+
+    {#if availableGenres.length > 0}
+      <section>
+        <p class="group-label">Género</p>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="chip" aria-pressed={filterGenre === 'all'} onclick={() => (filterGenre = 'all')}>Todos</button>
+          {#each availableGenres as g (g.id)}
+            <button type="button" class="chip" aria-pressed={filterGenre === g.id} onclick={() => (filterGenre = g.id)}>{g.name}</button>
+          {/each}
+        </div>
+      </section>
+    {/if}
+
+    <div class="grid grid-cols-2 gap-2.5">
+      <button type="button" class="glass-btn glass-btn--plain" onclick={resetSheetFilters} disabled={!sheetFilterCount}>Restablecer</button>
+      <button type="button" class="glass-btn glass-btn--plain glass-btn--prominent" onclick={() => (filtersOpen = false)}>
+        Ver {visibleTitles.length} {visibleTitles.length === 1 ? 'título' : 'títulos'}
+      </button>
+    </div>
+  </div>
+</Sheet>

@@ -16,7 +16,11 @@
   import { mediaTypeLabel } from '../lib/format';
   import type { TitleStatus } from '../lib/types';
 
-  const target = $derived($titleSheetTarget);
+  // The last target stays rendered while the sheet animates out.
+  let target = $state($titleSheetTarget);
+  $effect(() => {
+    if ($titleSheetTarget) target = $titleSheetTarget;
+  });
   const key = $derived(target ? summaryKey(target) : '');
   const stored = $derived(key ? $appData.titles[key] : undefined);
   const poster = $derived(img(target?.posterPath, ImageSize.posterSmall));
@@ -38,7 +42,7 @@
   }
 </script>
 
-<Sheet open={!!target} onClose={closeTitleSheet} title={target?.title ?? 'Título'} hideTitle>
+<Sheet open={!!$titleSheetTarget} onClose={closeTitleSheet} title={target?.title ?? 'Título'} hideTitle>
   {#if target}
     <div class="flex items-center gap-3.5 mb-5 pr-12">
       <div class="w-14 shrink-0 aspect-[2/3] rounded-lg overflow-hidden bg-fill">

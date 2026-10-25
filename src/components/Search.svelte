@@ -63,7 +63,7 @@
   <PageHeader title="Buscar" />
 
   <!-- Sticky glass pill: chrome over the results that scroll under it -->
-  <div class="sticky top-[calc(var(--safe-top)+0.5rem)] z-30">
+  <div class="sticky top-[calc(var(--topbar-top)+var(--topbar-h)+0.5rem)] z-30">
     <div class="glass-search" role="search">
       <Icon name="search" size={19} />
       <input

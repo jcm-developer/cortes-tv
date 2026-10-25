@@ -24,11 +24,41 @@
 
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+    /* Horizontal page margin; `.page-x` applies it and rows read it to bleed to the edges */
+    --page-x: 1rem;
+    /* Width of the top bar, and of the bottom tab bar on phones, so both line up */
+    --chrome-w: min(calc(100vw - 2 * var(--page-x)), 30rem);
+    /* Top bar: distance from the top edge, height, and the room content leaves for it */
+    --topbar-top: calc(var(--safe-top) + 8px);
+    --topbar-h: 52px;
+    --topbar-room: calc(var(--topbar-top) + var(--topbar-h) + 1.25rem);
     /* Distance from the bottom edge to the floating tab bar, and the room content leaves for it */
     --tabbar-bottom: max(12px, calc(var(--safe-bottom) - 8px));
     --tabbar-room: calc(var(--tabbar-bottom) + 64px + 24px);
+    --toast-bottom: calc(var(--tabbar-bottom) + 4.75rem);
 
     color-scheme: light;
+  }
+  @media (min-width: 640px) {
+    :root {
+      --page-x: 1.5rem;
+    }
+  }
+  /* Desktop: the top bar carries the tabs and spans the content column; no bottom tab bar */
+  @media (min-width: 768px) {
+    :root {
+      --chrome-w: calc(min(100vw, 64rem) - 2 * var(--page-x));
+      --topbar-top: calc(var(--safe-top) + 14px);
+      --topbar-h: 60px;
+      --topbar-room: calc(var(--topbar-top) + var(--topbar-h) + 2rem);
+      --tabbar-room: calc(var(--safe-bottom) + 3rem);
+      --toast-bottom: calc(var(--safe-bottom) + 1.5rem);
+    }
+  }
+  @media (min-width: 1024px) {
+    :root {
+      --page-x: 2.5rem;
+    }
   }
 
   .dark {
@@ -175,20 +205,9 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  /* Horizontal page margin; rows read it to bleed to the edges */
+  /* Horizontal page margin (`--page-x`, set on :root) */
   .page-x {
-    --page-x: 1rem;
     padding-inline: var(--page-x);
-  }
-  @media (min-width: 640px) {
-    .page-x {
-      --page-x: 1.5rem;
-    }
-  }
-  @media (min-width: 1024px) {
-    .page-x {
-      --page-x: 2.5rem;
-    }
   }
 }
 

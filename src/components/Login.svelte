@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** Renders the login form shown while `authed` is false: Convex email and password (sign in or first-time sign up), or the build-time gate. */
+  /** Renders the login form shown while `authed` is false: Convex email and password, or the build-time gate. There is no sign-up. */
   import { cloudLogin, login } from '../lib/auth';
   import { cloudEnabled } from '../lib/convex';
   import Logo from './Logo.svelte';
@@ -10,7 +10,6 @@
   let pass = $state('');
   let error = $state<string | null>(null);
   let busy = $state(false);
-  let creating = $state(false);
   let userEl: HTMLInputElement;
 
   $effect(() => {
@@ -28,7 +27,7 @@
       return;
     }
     busy = true;
-    const res = await cloudLogin(user, pass, creating);
+    const res = await cloudLogin(user, pass);
     busy = false;
     if (!res.ok) {
       error = res.message ?? 'No se pudo iniciar sesión.';
@@ -41,15 +40,9 @@
   <Logo height={56} />
 
   <form class="glass-sheet w-full max-w-sm p-6 sm:p-7" onsubmit={onSubmit}>
-    <h1 class="text-[1.75rem] font-bold tracking-tight">{creating ? 'Crear cuenta' : 'Iniciar sesión'}</h1>
+    <h1 class="text-[1.75rem] font-bold tracking-tight">Iniciar sesión</h1>
     <p class="mt-1 text-[15px] text-muted">
-      {#if !cloud}
-        Introduce tus credenciales para acceder.
-      {:else if creating}
-        Solo la primera vez. La contraseña necesita al menos 8 caracteres.
-      {:else}
-        Entra con tu cuenta para sincronizar tu biblioteca.
-      {/if}
+      {cloud ? 'Entra con tu cuenta para sincronizar tu biblioteca.' : 'Introduce tus credenciales para acceder.'}
     </p>
 
     <div class="mt-6 flex flex-col gap-3">
@@ -72,7 +65,7 @@
         placeholder="Contraseña"
         aria-label="Contraseña"
         bind:value={pass}
-        autocomplete={creating ? 'new-password' : 'current-password'}
+        autocomplete="current-password"
         oninput={() => (error = null)}
       />
     </div>
@@ -82,20 +75,7 @@
     {/if}
 
     <button type="submit" class="glass-btn glass-btn--plain glass-btn--prominent w-full mt-5 min-h-12" disabled={busy || !user.trim() || !pass}>
-      {busy ? 'Un momento…' : creating ? 'Crear cuenta' : 'Entrar'}
+      {busy ? 'Un momento…' : 'Entrar'}
     </button>
-
-    {#if cloud}
-      <button
-        type="button"
-        class="mt-3 w-full min-h-11 text-center text-[15px] font-medium text-accent active:opacity-60"
-        onclick={() => {
-          creating = !creating;
-          error = null;
-        }}
-      >
-        {creating ? 'Ya tengo cuenta: entrar' : 'Primera vez: crear cuenta'}
-      </button>
-    {/if}
   </form>
 </div>

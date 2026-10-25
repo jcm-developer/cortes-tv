@@ -1,10 +1,11 @@
 <script lang="ts">
-  /** Renders the root island: auth gate, active tab, tab bar and overlays; owns the theme, scroll lock and history sync. */
+  /** Renders the root island: auth gate, active tab, top bar, tab bar and overlays; owns the theme, scroll lock and history sync. */
   import Home from './Home.svelte';
   import Search from './Search.svelte';
   import Library from './Library.svelte';
   import Detail from './Detail.svelte';
   import TabBar from './TabBar.svelte';
+  import TopBar from './TopBar.svelte';
   import TitleSheet from './TitleSheet.svelte';
   import Settings from './Settings.svelte';
   import Sheet from './Sheet.svelte';
@@ -46,7 +47,9 @@
 {:else if !$authed}
   <Login />
 {:else}
-  <main class="page-x mx-auto w-full max-w-7xl pt-[calc(var(--safe-top)+1rem)] pb-[var(--tabbar-room)]">
+  <TopBar />
+
+  <main class="page-x mx-auto w-full max-w-5xl pt-[var(--topbar-room)] pb-[var(--tabbar-room)]">
     {#if $activeTab === 'home'}
       <Home />
     {:else if $activeTab === 'search'}

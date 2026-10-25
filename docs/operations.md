@@ -28,6 +28,7 @@ the bundle):
 | Variable | Read in | Purpose |
 |---|---|---|
 | `AUTH_ALLOWED_EMAIL` | `convex/auth.ts` | The only email that can create an account and sign in. |
+| `AUTH_ALLOW_SIGNUP` | `convex/auth.ts` | `true` only while creating the account (step 5); unset, the `signUp` flow is refused. |
 | `JWT_PRIVATE_KEY`, `JWKS` | Convex Auth | Signing key pair for session tokens (`npx @convex-dev/auth`). |
 | `SITE_URL` | Convex Auth | The site origin, `https://cortes-tv.pages.dev`. |
 
@@ -49,8 +50,10 @@ Optional; without it the library stays in each browser. One-time setup, from the
    store it as the encrypted Cloudflare variable `CONVEX_DEPLOY_KEY` ("Deploy").
 4. Push: the Cloudflare build runs `convex deploy`, which pushes `convex/` to production and
    builds the site with `PUBLIC_CONVEX_URL` pointing at it.
-5. Open the site, "Primera vez: crear cuenta" with the allowed email, then sign in on the other
-   devices.
+5. Create the account from the CLI (the app has no sign-up): `npx convex env set
+   AUTH_ALLOW_SIGNUP true --prod`, then `npx convex run --prod auth:signIn '{"provider":"password",
+   "params":{"email":"<email>","password":"<at least 8 characters>","flow":"signUp"}}'`, then
+   `npx convex env remove AUTH_ALLOW_SIGNUP --prod`. Sign in on every device.
 
 Locally, set `PUBLIC_CONVEX_URL` in `.env` to the dev `CONVEX_URL` and keep `npx convex dev`
 running while you change `convex/`. `convex/_generated/` is committed; `convex dev` and

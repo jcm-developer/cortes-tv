@@ -69,24 +69,18 @@ export interface LoginResult {
 }
 
 /**
- * Signs in to Convex with email and password, or creates the account the first time.
+ * Signs in to Convex with email and password.
  *
  * @param email - The account email.
  * @param password - The password.
- * @param create - True to create the account (only the allowed email can).
  * @return The outcome; failures carry a message safe to show.
  */
-export async function cloudLogin(email: string, password: string, create = false): Promise<LoginResult> {
-  const res = await passwordSignIn(email, password, create ? 'signUp' : 'signIn');
+export async function cloudLogin(email: string, password: string): Promise<LoginResult> {
+  const res = await passwordSignIn(email, password);
   if (!res.userId) {
     if (res.error === 'network') return { ok: false, message: 'Sin conexión. Inténtalo de nuevo.' };
     if (res.error === 'not-allowed') return { ok: false, message: 'Este email no tiene acceso.' };
-    return {
-      ok: false,
-      message: create
-        ? 'No se pudo crear la cuenta. ¿Ya existe? Usa "Entrar". La contraseña necesita 8 caracteres.'
-        : 'Email o contraseña incorrectos.',
-    };
+    return { ok: false, message: 'Email o contraseña incorrectos.' };
   }
   const user = { id: res.userId, email: email.trim().toLowerCase() };
   try {
