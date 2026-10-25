@@ -1,20 +1,35 @@
 <script lang="ts">
-  /** Renders the single-user login form shown while `authed` is false. */
-  import { login } from '../lib/auth';
+  /** Renders the login form shown while `authed` is false: Supabase email and password, or the build-time gate. */
+  import { cloudLogin, login } from '../lib/auth';
+  import { cloudEnabled } from '../lib/supabase';
+
+  const cloud = cloudEnabled();
 
   let user = $state('');
   let pass = $state('');
-  let error = $state(false);
+  let error = $state<string | null>(null);
+  let busy = $state(false);
   let userEl: HTMLInputElement;
 
   $effect(() => {
     userEl?.focus();
   });
 
-  function onSubmit(e: Event) {
+  async function onSubmit(e: Event) {
     e.preventDefault();
-    if (!login(user, pass)) {
-      error = true;
+    error = null;
+    if (!cloud) {
+      if (!login(user, pass)) {
+        error = 'Usuario o contraseña incorrectos.';
+        pass = '';
+      }
+      return;
+    }
+    busy = true;
+    const res = await cloudLogin(user, pass);
+    busy = false;
+    if (!res.ok) {
+      error = res.message ?? 'No se pudo iniciar sesión.';
       pass = '';
     }
   }
@@ -25,20 +40,23 @@
     <div class="mb-6 text-xl font-bold tracking-tight">Cortes TV</div>
 
     <h1 class="text-3xl font-bold tracking-tight">Iniciar sesión</h1>
-    <p class="mt-1.5 text-[15px] text-muted">Introduce tus credenciales para acceder.</p>
+    <p class="mt-1.5 text-[15px] text-muted">
+      {cloud ? 'Entra con tu cuenta para sincronizar tu biblioteca.' : 'Introduce tus credenciales para acceder.'}
+    </p>
 
     <div class="mt-6 flex flex-col gap-3">
       <label class="flex flex-col gap-1.5">
-        <span class="text-[11px] font-medium uppercase tracking-wide text-muted">Usuario</span>
+        <span class="text-[11px] font-medium uppercase tracking-wide text-muted">{cloud ? 'Email' : 'Usuario'}</span>
         <input
           bind:this={userEl}
           class="field"
-          type="text"
+          type={cloud ? 'email' : 'text'}
+          inputmode={cloud ? 'email' : 'text'}
           bind:value={user}
-          autocomplete="username"
+          autocomplete={cloud ? 'email' : 'username'}
           autocapitalize="off"
           spellcheck="false"
-          oninput={() => (error = false)}
+          oninput={() => (error = null)}
         />
       </label>
       <label class="flex flex-col gap-1.5">
@@ -48,17 +66,17 @@
           type="password"
           bind:value={pass}
           autocomplete="current-password"
-          oninput={() => (error = false)}
+          oninput={() => (error = null)}
         />
       </label>
     </div>
 
     {#if error}
-      <p class="mt-3 text-[15px] text-red-500">Usuario o contraseña incorrectos.</p>
+      <p class="mt-3 text-[15px] text-red-500" role="alert">{error}</p>
     {/if}
 
-    <button type="submit" class="btn-primary w-full mt-5" disabled={!user.trim() || !pass}>
-      Entrar
+    <button type="submit" class="btn-primary w-full mt-5" disabled={busy || !user.trim() || !pass}>
+      {busy ? 'Entrando…' : 'Entrar'}
     </button>
   </form>
 </div>

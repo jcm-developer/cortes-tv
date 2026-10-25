@@ -51,6 +51,11 @@ jobs:
           # Si no los defines, el sitio queda con acceso abierto.
           PUBLIC_AUTH_USER: ${{ secrets.AUTH_USER }}
           PUBLIC_AUTH_PASSWORD: ${{ secrets.AUTH_PASSWORD }}
+          # Supabase: login real y sincronización. Variables de repositorio
+          # (Settings > Secrets and variables > Actions > Variables) SUPABASE_URL
+          # y SUPABASE_KEY. Sin ellas la biblioteca se queda en el navegador.
+          PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          PUBLIC_SUPABASE_KEY: ${{ vars.SUPABASE_KEY }}
         run: |
           pnpm run build
           touch dist/.nojekyll

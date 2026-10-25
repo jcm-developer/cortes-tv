@@ -35,13 +35,16 @@
 - Full-screen backdrop, synopsis, genres, runtime or seasons, TMDB score, cast, where to
   watch it (`/watch/providers`) and similar titles (`/recommendations`).
 
+**Sync**
+- Optional Supabase login (email and password) that syncs the library between desktop and
+  iPhone, works offline and catches up when the connection returns.
+
 **App**
 - Apple Human Interface and Liquid Glass design ([DESIGN.md](DESIGN.md)), light, dark and
   system themes with no flash on load.
 - Top bar on desktop, bottom tab bar on mobile, iPhone safe areas, installable as a PWA.
-- Optional single-user login, with a session that does not expire.
-- Data in `localStorage`, with JSON export and import (replace or merge) for backups and moving
-  between devices.
+- Without Supabase: an optional build-time login and data in `localStorage` only.
+- JSON export and import (replace or merge), including backups from the old list format.
 
 The UI is in Spanish.
 
@@ -62,7 +65,7 @@ The UI is in Spanish.
 | Site and build | Astro 5, static output with one client-only island |
 | UI | Svelte 5, TypeScript |
 | Styling | Tailwind CSS 3 with design tokens as CSS variables |
-| Data | TMDB API v3 (read only), browser `localStorage` |
+| Data | TMDB API v3 (read only), browser `localStorage`, optional Supabase |
 | Hosting | GitHub Pages, deployed by GitHub Actions |
 
 ---
@@ -74,16 +77,18 @@ flowchart LR
   user([User]) --> app[Svelte island]
   app --> tmdb[(TMDB API)]
   app --> ls[(localStorage)]
+  ls <-. sync .-> sb[(Supabase user_titles)]
   ls --> backup[JSON backup file]
   gha[GitHub Actions] --> pages[GitHub Pages]
   pages --> app
 ```
 
-There is no backend. The browser calls TMDB directly and keeps the user's data in
-`localStorage`, one record per title with its status (pending or watched), so it maps one to
-one to a database table. Every `PUBLIC_*` variable, including the TMDB key
-and the login credentials, ships in the public bundle: use a read-only TMDB key, and treat the
-login as a closed door, not as security.
+There is no server code. The browser calls TMDB directly and keeps the user's library in
+`localStorage`, one record per title with its status (pending or watched). With Supabase
+configured, that copy syncs with a `user_titles` table protected by row level security, so
+the same library shows on every device. Every `PUBLIC_*` variable ships in the public bundle:
+use a read-only TMDB key and the Supabase anon key; the build-time login is a closed door, not
+security.
 
 ---
 
@@ -94,7 +99,7 @@ Requires Node 22 and pnpm 11, plus a TMDB v3 API key from
 
 ```bash
 pnpm install
-cp .env.example .env      # set PUBLIC_TMDB_API_KEY; PUBLIC_AUTH_* are optional
+cp .env.example .env      # set PUBLIC_TMDB_API_KEY; Supabase and PUBLIC_AUTH_* are optional
 pnpm dev
 ```
 
@@ -106,7 +111,8 @@ pnpm dev
 | `pnpm check` | Type and template checks (`astro check`) |
 
 Deploy: enable **Settings > Pages > Source: GitHub Actions**, add the `TMDB_API_KEY` secret
-(and optionally `AUTH_USER` and `AUTH_PASSWORD`), and push to `main`. Environment variables,
+and, for sync, the `SUPABASE_URL` and `SUPABASE_KEY` variables, then push to `main`. Supabase
+setup: [docs/operations.md](docs/operations.md#supabase). Environment variables,
 base path and CI: [docs/operations.md](docs/operations.md).
 
 ---
@@ -118,6 +124,7 @@ cortes-tv/
 ├── src/           # Svelte components, stores and TMDB client, layout, styles
 ├── public/        # Logo, PWA icons and manifest
 ├── scripts/       # Icon generator and docs check
+├── supabase/      # Database schema and row level security
 ├── docs/          # Domains, operations, workflow and decisions
 ├── DESIGN.md      # Design system
 └── AGENTS.md      # Agent rules and documentation map

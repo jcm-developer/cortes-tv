@@ -14,14 +14,36 @@ bundle. `.env.example` lists them for local development; CI sets them in
 | `PUBLIC_TMDB_API_KEY` | Yes | `src/lib/tmdb.ts` | TMDB v3 API key. CI: secret `TMDB_API_KEY`. |
 | `PUBLIC_TMDB_LANG` | No (`es-ES`) | `src/lib/tmdb.ts` | Language of TMDB responses. |
 | `PUBLIC_TMDB_REGION` | No (`ES`) | `src/lib/tmdb.ts` | Region for "now playing" and watch providers. |
-| `PUBLIC_AUTH_USER` | No | `src/lib/auth.ts` | Login user. CI: secret `AUTH_USER`. |
-| `PUBLIC_AUTH_PASSWORD` | No | `src/lib/auth.ts` | Login password. CI: secret `AUTH_PASSWORD`. |
+| `PUBLIC_SUPABASE_URL` | No | `src/lib/supabase.ts` | Supabase Project URL. CI: variable `SUPABASE_URL`. |
+| `PUBLIC_SUPABASE_KEY` | No | `src/lib/supabase.ts` | Supabase anon or publishable key. CI: variable `SUPABASE_KEY`. |
+| `PUBLIC_AUTH_USER` | No | `src/lib/auth.ts` | Build-time gate user, ignored with Supabase. CI: secret `AUTH_USER`. |
+| `PUBLIC_AUTH_PASSWORD` | No | `src/lib/auth.ts` | Build-time gate password, ignored with Supabase. CI: secret `AUTH_PASSWORD`. |
 | `SITE` | No | `astro.config.mjs` | Site origin, default `https://tu-usuario.github.io`. |
 | `BASE` | No | `astro.config.mjs` | Base path, default `/cortes-tv`; `/` for a custom domain or a user site. |
 
 Never commit a secret. Every `PUBLIC_*` variable ends up in the public bundle: the TMDB key
-must be a read-only v3 key, and the login credentials only close the door, they are not real
-security (`docs/domains/auth.md`). With both auth variables empty, the site is open.
+must be a read-only v3 key; the Supabase key must be the anon or publishable one, never the
+`service_role` or secret key, because row level security is what protects the data; the
+build-time login credentials only close the door, they are not real security
+(`docs/domains/auth.md`). With no Supabase and no auth variables, the site is open.
+
+## Supabase
+
+Optional; without it the library stays in each browser. One-time setup:
+
+1. Create a free project at supabase.com.
+2. SQL Editor: run `supabase/schema.sql` (table `user_titles`, check constraints, row level
+   security policies). It is safe to run again.
+3. Authentication > Sign In / Providers: keep Email enabled and turn off "Allow new users to
+   sign up", so nobody else can create an account.
+4. Authentication > Users > Add user: create the account with email and password, with
+   "Auto Confirm User" on.
+5. Project Settings > API Keys: copy the Project URL and the anon (or publishable) key into
+   `.env` locally and into the repository variables `SUPABASE_URL` and `SUPABASE_KEY`
+   (Settings > Secrets and variables > Actions > Variables) for the deploy.
+
+The first sign-in on a device that already had a local library merges it into the account
+(`docs/domains/library.md`).
 
 ## Local development
 
@@ -58,4 +80,6 @@ pnpm 11 format) so the frozen install succeeds in CI.
 ## Costs
 
 None: GitHub Pages and the TMDB API are free for this use. TMDB rate limits apply per key
-(`TmdbError` with status 429).
+(`TmdbError` with status 429). Supabase free tier: the library is a few hundred small rows,
+far below the limits, but a free project pauses after 7 days without requests and must be
+restored from the dashboard; daily use keeps it awake.

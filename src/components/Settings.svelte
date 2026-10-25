@@ -1,18 +1,16 @@
 <script lang="ts">
-  /** Renders the settings sheet content: theme, JSON export and import, and logout. */
+  /** Renders the settings sheet content: library stats, account and sync, theme, JSON backup and logout. */
   import Icon from './Icon.svelte';
   import { exportJSON, importJSON, pendingTitles, watchedTitles } from '../lib/store';
   import { showToast, theme, settingsOpen, type Theme } from '../lib/ui';
-  import { authRequired, logout } from '../lib/auth';
+  import { authRequired, cloudUser, logout } from '../lib/auth';
+  import { cloudEnabled } from '../lib/supabase';
+  import { syncState, syncNow, signOut } from '../lib/sync';
 
-  function onLogout() {
-    settingsOpen.set(false);
-    logout();
-  }
+  const cloud = cloudEnabled();
 
   let fileInput: HTMLInputElement;
   let importMode = $state<'replace' | 'merge'>('merge');
-
 
   function onExport() {
     exportJSON();
@@ -31,6 +29,35 @@
     input.value = '';
   }
 
+  function onLogout() {
+    if (
+      cloud &&
+      $syncState.pending > 0 &&
+      !confirm(`Hay ${$syncState.pending} cambios sin sincronizar que se perderán. ¿Cerrar sesión igualmente?`)
+    ) {
+      return;
+    }
+    settingsOpen.set(false);
+    void (cloud ? signOut() : logout());
+  }
+
+  const syncLabel = $derived.by(() => {
+    switch ($syncState.status) {
+      case 'syncing':
+        return 'Sincronizando…';
+      case 'offline':
+        return 'Sin conexión: se sincronizará al volver';
+      case 'error':
+        return 'No se pudo sincronizar';
+      case 'idle':
+        return $syncState.lastSync
+          ? `Sincronizado a las ${new Date($syncState.lastSync).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
+          : 'Sincronizado';
+      default:
+        return 'Desconectado';
+    }
+  });
+
   const themes: { id: Theme; label: string }[] = [
     { id: 'light', label: 'Claro' },
     { id: 'dark', label: 'Oscuro' },
@@ -38,8 +65,7 @@
   ];
 </script>
 
-<div class="flex flex-col gap-4">
-  <!-- Estadísticas -->
+<div class="flex flex-col gap-5">
   <div class="flex gap-3">
     <div class="flex-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] p-4">
       <p class="text-3xl font-bold tracking-tight">{$pendingTitles.length}</p>
@@ -51,7 +77,31 @@
     </div>
   </div>
 
-  <!-- Tema -->
+  {#if cloud && $cloudUser}
+    <div>
+      <p class="text-[11px] font-medium uppercase tracking-wide text-muted mb-2">Cuenta</p>
+      <div class="rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] p-4 flex items-center gap-3">
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent/10 text-accent">
+          <Icon name="cloud" size={20} />
+        </span>
+        <div class="flex-1 min-w-0">
+          <p class="font-medium truncate">{$cloudUser.email}</p>
+          <p class="text-sm {$syncState.status === 'error' ? 'text-red-500' : 'text-muted'}">
+            {syncLabel}{#if $syncState.pending > 0}<span> · {$syncState.pending} pendientes de subir</span>{/if}
+          </p>
+        </div>
+        <button
+          class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-muted hover:text-content active:scale-90 transition-transform disabled:opacity-40"
+          onclick={() => void syncNow()}
+          disabled={$syncState.status === 'syncing'}
+          aria-label="Sincronizar ahora"
+        >
+          <span class:animate-spin={$syncState.status === 'syncing'}><Icon name="refresh" size={20} /></span>
+        </button>
+      </div>
+    </div>
+  {/if}
+
   <div>
     <p class="text-[11px] font-medium uppercase tracking-wide text-muted mb-2">Apariencia</p>
     <div class="flex gap-2">
@@ -63,13 +113,13 @@
     </div>
   </div>
 
-  <!-- Copia de seguridad -->
   <div>
     <p class="text-[11px] font-medium uppercase tracking-wide text-muted mb-1.5">Copia de seguridad</p>
     <p class="text-[15px] text-muted leading-relaxed mb-3">
-      Tu biblioteca se guarda en este dispositivo. Exporta un archivo JSON para conservarla o
-      moverla a otro. Puedes importar copias antiguas con listas: lo valorado o fechado pasa a
-      Vistas y el resto a Pendientes.
+      {cloud
+        ? 'Tu biblioteca se sincroniza con tu cuenta. Exporta un JSON si quieres una copia propia.'
+        : 'Tu biblioteca se guarda en este dispositivo. Exporta un archivo JSON para conservarla o moverla a otro.'}
+      Puedes importar copias antiguas con listas: lo valorado o fechado pasa a Vistas y el resto a Pendientes.
     </p>
 
     <button class="btn-glass w-full" onclick={onExport}>
@@ -89,7 +139,7 @@
   </div>
 
   {#if authRequired()}
-    <button class="btn-glass w-full mt-1" onclick={onLogout}>
+    <button class="btn-glass w-full" onclick={onLogout}>
       <Icon name="logout" size={18} /> Cerrar sesión
     </button>
   {/if}

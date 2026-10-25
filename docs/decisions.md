@@ -64,3 +64,17 @@ titles carry `rating` and `watchedAt`. `AppData` v2 is a single `titles` map, on
 with `updatedAt` for merges. `normalize` migrates v1 documents and backups.
 Consequences: no custom lists or ordering. One title maps to one database row, which keeps a
 later sync simple. Old v1 backups still import.
+
+## D7. Optional Supabase sync with local-first storage (2026-10-25)
+Status: accepted
+Context: the app is used on desktop and as an installed iPhone PWA, whose storage is separate
+from Safari, so `localStorage` alone left each device with its own library. The build-time
+login (D1) is not security.
+Decision: when `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_KEY` are set, log in with Supabase
+email and password and sync the library with a `user_titles` table under row level security.
+`localStorage` stays the copy the UI reads; a dirty-key outbox sends changes, a pull on
+sign-in, reconnection and focus brings the server state. Without the variables, the app works
+as before.
+Consequences: free tier, but a free project pauses after a week without requests. The
+supabase-js client loads lazily. Conflicts are last write wins per title. Still no server code
+of our own: the site stays static.

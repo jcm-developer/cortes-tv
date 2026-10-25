@@ -11,7 +11,8 @@
   import Toast from './Toast.svelte';
   import Login from './Login.svelte';
   import { activeTab, settingsOpen, theme, applyTheme, onHistoryBack } from '../lib/ui';
-  import { authed } from '../lib/auth';
+  import { authed, authReady } from '../lib/auth';
+  import '../lib/sync';
 
   // Mantén el <html> sincronizado con el tema (incluye cambios del sistema).
   $effect(() => {
@@ -31,7 +32,11 @@
   });
 </script>
 
-{#if !$authed}
+{#if !$authReady}
+  <div class="min-h-dvh grid place-items-center" aria-busy="true">
+    <span class="text-xl font-bold tracking-tight animate-pulse">Cortes TV</span>
+  </div>
+{:else if !$authed}
   <Login />
 {:else}
   <TopNav />

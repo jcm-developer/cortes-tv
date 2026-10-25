@@ -38,6 +38,19 @@ function str(v: unknown): string | null {
   return typeof v === 'string' && v !== '' ? v : null;
 }
 
+/**
+ * Returns a timestamp as a UTC ISO string with milliseconds.
+ *
+ * Postgres answers `+00:00` and microseconds; one canonical form keeps the string comparisons
+ * of `updatedAt` in merges and sync correct.
+ */
+function isoTime(v: unknown): string | null {
+  const s = str(v);
+  if (!s) return null;
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 /** Returns the value when it is a finite number, otherwise null. */
 function num(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
@@ -61,7 +74,7 @@ export function cleanTitle(raw: unknown, fallbackStatus: TitleStatus = 'pending'
     r.status === 'pending' || r.status === 'watched' ? r.status : fallbackStatus;
   const rating = num(r.rating);
   const watchedAt = str(r.watchedAt);
-  const addedAt = str(r.addedAt) ?? nowISO();
+  const addedAt = isoTime(r.addedAt) ?? nowISO();
   const watched = status === 'watched';
 
   return {
@@ -76,7 +89,7 @@ export function cleanTitle(raw: unknown, fallbackStatus: TitleStatus = 'pending'
     genreIds: Array.isArray(r.genreIds) ? r.genreIds.filter((g): g is number => Number.isInteger(g)) : [],
     status,
     addedAt,
-    updatedAt: str(r.updatedAt) ?? addedAt,
+    updatedAt: isoTime(r.updatedAt) ?? addedAt,
     rating: watched && rating !== null && rating >= 1 && rating <= 5 ? Math.round(rating) : null,
     watchedAt: watched && watchedAt && /^\d{4}-\d{2}-\d{2}$/.test(watchedAt) ? watchedAt : null,
   };
@@ -371,12 +384,21 @@ export function setWatchedAt(key: string, watchedAt: string | null): void {
 /**
  * Replaces the whole library, for example with the data pulled from the server.
  *
- * Does not notify the change listeners: the caller already owns the new data.
+ * Does not notify the change listeners: the caller already owns the new data. Persists
+ * synchronously.
  *
  * @param titles - The new titles, already validated.
  */
 export function replaceTitles(titles: Record<string, StoredTitle>): void {
-  appData.set({ version: SCHEMA_VERSION, titles });
+  const data = { version: SCHEMA_VERSION, titles };
+  appData.set(data);
+  // Written at once, not debounced: after a sign-out, closing the tab within the debounce
+  // window must not leave the previous user's titles in storage.
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    /* Quota full or storage blocked. */
+  }
 }
 
 // --- Export / Import --------------------------------------------------------

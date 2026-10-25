@@ -23,15 +23,16 @@ knowledge lives, and how to keep that knowledge current.
 Cortes TV is a personal movie and TV show tracker with an Apple Liquid Glass look, built for
 one user on desktop and iPhone. It is a fully static site: titles come from TheMovieDB (TMDB)
 straight from the browser, and the user's library (pending and watched titles, ratings and
-watched dates) lives in `localStorage`, with a JSON export and import for backups. The UI
-copy is in Spanish.
+watched dates) lives in `localStorage` and, when Supabase is configured, syncs with a
+Supabase table behind an email and password login. JSON export and import serve as backups.
+The UI copy is in Spanish.
 
 | Layer | Technology |
 |---|---|
 | Site and build | Astro 5 (static output, one client-only island) |
 | UI | Svelte 5 (runes), TypeScript |
 | Styling | Tailwind CSS 3, design tokens as CSS variables (`DESIGN.md`) |
-| Data | TMDB API v3 (read only), `localStorage` |
+| Data | TMDB API v3 (read only), `localStorage`, optional Supabase (auth and sync) |
 | Package manager | pnpm 11 |
 | Hosting | GitHub Pages, deployed by GitHub Actions |
 
@@ -51,9 +52,10 @@ cortes-tv/
 ├── src/
 │   ├── components/              # Svelte components; App.svelte is the root island
 │   ├── layouts/Layout.astro     # HTML shell, PWA meta, no-flash theme script, background
-│   ├── lib/                     # Stores and logic: auth, store, tmdb, ui, format, types
+│   ├── lib/                     # Stores and logic: auth, store, sync, supabase, tmdb, ui, format, types
 │   ├── pages/index.astro        # The only page; mounts App client-only
 │   └── styles/global.css        # Design tokens and glass utilities
+├── supabase/schema.sql          # user_titles table and row level security, run once in Supabase
 ├── DESIGN.md                    # Design system (Spanish): type, color, depth, motion
 ├── astro.config.mjs             # Site and base for GitHub Pages, integrations
 └── tailwind.config.js           # Tailwind theme mapped to the CSS tokens
@@ -78,9 +80,9 @@ when the area changes.
 
 | File | Covers |
 |---|---|
-| `auth.md` | Single-user login gate, session marker in `localStorage` |
+| `auth.md` | Supabase login, build-time gate fallback, sessions |
 | `catalog.md` | TMDB client, discovery rows, search, title detail data, genres |
-| `library.md` | Pending and watched titles, ratings, watched dates, persistence, backup |
+| `library.md` | Pending and watched titles, ratings, watched dates, persistence, sync, backup |
 | `ui.md` | App shell, navigation, detail view, sheets, theme, toasts |
 
 ## 4. Keeping the docs current

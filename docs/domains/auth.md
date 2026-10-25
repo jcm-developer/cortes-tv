@@ -2,42 +2,59 @@
 
 ## Purpose
 
-An optional single-user login that keeps casual visitors out of the deployed site. The
-credentials are build-time variables, so this is a closed door, not security: anyone who reads
-the bundle can find them. With no credentials configured, the site is open.
+Who may open the app. With Supabase configured, a real email and password login whose
+session lets the sync layer read and write the user's own rows. Without Supabase, an optional
+build-time gate that keeps casual visitors out; with neither, the site is open.
 
 ## Key files
 
-- `src/lib/auth.ts` (`authRequired`, `session`, `login`, `logout`, `authed`): the whole gate.
-- `src/components/Login.svelte`: the login form, shown by `App.svelte` while `authed` is false.
-- `src/components/Settings.svelte`: the "log out" action, only when `authRequired()`.
+- `src/lib/supabase.ts` (`cloudEnabled`, `getClient`): the lazy Supabase client.
+- `src/lib/auth.ts` (`cloudUser`, `authReady`, `cloudLogin`, `authRequired`, `session`,
+  `login`, `logout`, `authed`): both login modes.
+- `src/components/Login.svelte`: the form, email or user name depending on the mode.
+- `src/components/App.svelte`: splash while `authReady` is false, `Login` while `authed` is
+  false.
+- `src/components/Settings.svelte`: account, sync state and "log out".
 
 ## Data
 
-- `localStorage["cortes-tv:session"]`: a non-cryptographic marker, `btoa("v1:" + user)`. It
-  has no expiry; the session lasts until logout or until storage is cleared.
+- `localStorage["cortes-tv:auth"]`: the Supabase session (access and refresh tokens), managed
+  by `supabase-js`.
+- `localStorage["cortes-tv:user"]`: the last signed-in cloud user (`id`, `email`), so the app
+  opens offline.
+- `localStorage["cortes-tv:session"]`: the build-time gate marker, `btoa("v1:" + user)`, with no
+  expiry.
 
 ## Flow
 
-1. `session` starts from `loadSession`: true when the stored marker matches the current one.
-2. `App.svelte` renders `Login` while `authed` (`!authRequired() || session`) is false.
-3. `login(user, pass)` compares against `PUBLIC_AUTH_USER` (trimmed) and
-   `PUBLIC_AUTH_PASSWORD`, stores the marker and sets `session` to true.
-4. `logout()` removes the marker and sets `session` to false.
+1. With Supabase, `cloudUser` starts from the cached user and `authReady` is true at once when
+   there is one; otherwise a splash shows until `getSession` answers.
+2. `getSession` confirms or clears the user; `onAuthStateChange` follows token refreshes and
+   sign-outs. `cloudLogin` calls `signInWithPassword` and maps failures to Spanish messages.
+3. "Log out" in Settings calls `signOut` in `sync.ts`: it clears the local library, then
+   `logout` clears `cloudUser` and signs out locally (`docs/domains/library.md`). A session
+   lost by itself only clears `cloudUser`, so the login shows but local data stays.
+4. Without Supabase, `login(user, pass)` compares against `PUBLIC_AUTH_USER` (trimmed) and
+   `PUBLIC_AUTH_PASSWORD` and stores the marker.
 
 ## Invariants
 
-- Auth is required only when both variables are non-empty (`authRequired`).
-- The marker embeds the user name, so changing `PUBLIC_AUTH_USER` invalidates old sessions.
-  Changing only the password does not.
+- `authRequired` is true with Supabase, or when both build-time variables are set; with
+  Supabase the build-time variables are ignored.
+- There is no sign-up in the app: accounts are created in the Supabase dashboard, and sign-ups
+  stay disabled there (`docs/operations.md`).
+- Supabase errors are logged to the console and never shown raw.
 
 ## Gotchas
 
-- Credentials ship in the public bundle (`docs/operations.md`). Real auth needs a backend
-  (`docs/decisions.md`, D1).
-- `localStorage` access is wrapped in `try`: private modes that throw on storage just behave
-  as logged out.
+- No magic link: on iPhone it opens Safari, not the installed PWA, and the session would land
+  in Safari's storage.
+- Offline with an expired access token, `getSession` fails; the cached user is kept so the app
+  still opens, and the token refreshes when the connection returns.
+- The build-time credentials ship in the public bundle (`docs/operations.md`); that gate is not
+  security.
 
 ## Related
 
-- `docs/domains/ui.md` for the app shell that renders the gate.
+- `docs/domains/library.md`: the sync that the session enables.
+- `docs/decisions.md`, D7: why Supabase.
