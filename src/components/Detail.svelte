@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** Renders the full-screen detail of `detailTarget` with personal rating, watched date and lists. */
   import Icon from './Icon.svelte';
   import Carousel from './Carousel.svelte';
   import StarRating from './StarRating.svelte';
@@ -104,7 +105,7 @@
             <img class="w-24 sm:w-32 shrink-0 aspect-[2/3] object-cover rounded-2xl shadow-poster ring-1 ring-white/10" src={poster} alt={view?.title} />
           {/if}
           <div class="flex-1 min-w-0 pb-1 text-white">
-            <h1 class="text-3xl sm:text-4xl font-bold tracking-tight selectable [text-shadow:0_2px_20px_rgba(0,0,0,0.55)]">{view?.title ?? '—'}</h1>
+            <h1 class="text-3xl sm:text-4xl font-bold tracking-tight selectable [text-shadow:0_2px_20px_rgba(0,0,0,0.55)]">{view?.title ?? '\u2014'}</h1>
             <p class="mt-1.5 text-sm font-medium text-white/80">{metaLine()}</p>
             <div class="mt-2.5 flex flex-wrap gap-1.5">
               {#if formatVote(view?.voteAverage ?? null)}

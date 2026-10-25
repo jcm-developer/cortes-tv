@@ -2,13 +2,22 @@
   import type { Snippet } from 'svelte';
   import Icon from './Icon.svelte';
 
+  /**
+   * Renders a horizontal scroll row with a heading and arrow buttons on wide screens.
+   *
+   * @param title - The heading.
+   * @param subtitle - A smaller line next to the heading.
+   * @param onSeeAll - Shows a "see all" action that calls it.
+   * @param arrowTop - The vertical position of the arrows, a Tailwind `top-*` class; centered
+   *     on a poster by default.
+   * @param class - Classes of the `<section>`; overrides the margin when carousels are nested.
+   * @param children - The items.
+   */
   interface Props {
     title?: string;
     subtitle?: string;
     onSeeAll?: () => void;
-    /** Posición vertical de las flechas (clase Tailwind top-*). Por defecto centradas sobre un póster. */
     arrowTop?: string;
-    /** Clases del contenedor <section>. Permite anular el margen al anidar el carrusel. */
     class?: string;
     children: Snippet;
   }

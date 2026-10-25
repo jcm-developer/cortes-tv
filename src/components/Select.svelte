@@ -1,6 +1,13 @@
 <script lang="ts" generics="T extends string | number">
   import Icon from './Icon.svelte';
 
+  /**
+   * Renders a glass dropdown that replaces the native select.
+   *
+   * @param value - The selected value, bindable.
+   * @param options - The choices, each with a value and a label.
+   * @param ariaLabel - The accessible name of the button.
+   */
   interface Props {
     value: T;
     options: { value: T; label: string }[];

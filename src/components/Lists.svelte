@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** Renders the Lists tab: the list index, and one list with filters, sorting and per-title actions. */
   import Icon from './Icon.svelte';
   import PosterCard from './PosterCard.svelte';
   import Select from './Select.svelte';

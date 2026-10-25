@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** Renders the bottom sheet that toggles a title in each list and creates a list inline. */
   import Sheet from './Sheet.svelte';
   import Icon from './Icon.svelte';
   import { addSheetTarget, closeAddSheet, showToast } from '../lib/ui';

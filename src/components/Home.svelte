@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** Renders the Home tab: TMDB discovery rows, or a setup hint when there is no API key. */
   import DiscoverRow from './DiscoverRow.svelte';
   import Icon from './Icon.svelte';
   import {

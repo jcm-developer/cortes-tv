@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** Renders the settings sheet content: theme, JSON export and import, and logout. */
   import Icon from './Icon.svelte';
   import { exportJSON, importJSON, appData } from '../lib/store';
   import { showToast, theme, settingsOpen, type Theme } from '../lib/ui';

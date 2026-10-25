@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** Renders the Search tab: debounced TMDB multi search with add-to-list buttons. */
   import PosterCard from './PosterCard.svelte';
   import Icon from './Icon.svelte';
   import { searchMulti, hasApiKey, TmdbError } from '../lib/tmdb';

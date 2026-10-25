@@ -3,9 +3,19 @@
   import type { MediaSummary } from '../lib/types';
   import Icon from './Icon.svelte';
 
+  /**
+   * Renders a title poster with its name and year, and a corner action button.
+   *
+   * @param item - The title.
+   * @param width - The card width in pixels; 0 fills the grid cell.
+   * @param onOpen - Called when the poster is pressed.
+   * @param onAdd - Called when the corner button is pressed.
+   * @param showAdd - Whether the corner button is shown.
+   * @param cornerIcon - The corner button icon: add, or more actions.
+   * @param rating - The personal rating badge, hidden when null.
+   */
   interface Props {
     item: MediaSummary;
-    /** ancho de la tarjeta en px; 0 = fluido (rellena la celda del grid) */
     width?: number;
     onOpen?: (item: MediaSummary) => void;
     onAdd?: (item: MediaSummary) => void;

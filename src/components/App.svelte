@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** Renders the root island: auth gate, navigation, active tab and overlays; owns the theme and history sync. */
   import Home from './Home.svelte';
   import Search from './Search.svelte';
   import Lists from './Lists.svelte';

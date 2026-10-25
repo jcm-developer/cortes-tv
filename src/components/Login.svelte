@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** Renders the single-user login form shown while `authed` is false. */
   import { login } from '../lib/auth';
 
   let user = $state('');

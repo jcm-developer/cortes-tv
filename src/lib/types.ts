@@ -1,12 +1,15 @@
-// =============================================================================
-// Tipos de dominio. La estructura está pensada para migrar a una BBDD externa
-// (p. ej. Supabase) sin rehacer la app: `titles` es una tabla normalizada y
-// `lists` + `list.itemKeys` modelan una relación N:M (join table list_items).
-// =============================================================================
+/**
+ * Domain types.
+ *
+ * The persisted shape is ready for an external database (for example Supabase): `titles` is a
+ * normalized table and `lists[].itemKeys` is the many-to-many join table between lists and
+ * titles. See `docs/decisions.md`, D3.
+ */
 
+/** The two kinds of title TMDB serves that the app handles. */
 export type MediaType = 'movie' | 'tv';
 
-/** Resultado ligero de búsqueda / carrusel. */
+/** A light title, as shown in search results and carousels. */
 export interface MediaSummary {
   id: number;
   mediaType: MediaType;
@@ -19,9 +22,9 @@ export interface MediaSummary {
   overview?: string;
 }
 
-/** Título tal y como se guarda en local (snapshot + datos personales). */
+/** A title as stored locally: a snapshot of its summary plus the user's own data. */
 export interface StoredTitle {
-  /** Clave única estable: `${mediaType}:${id}`. */
+  /** Stable unique key: `${mediaType}:${id}`. */
   key: string;
   id: number;
   mediaType: MediaType;
@@ -31,33 +34,39 @@ export interface StoredTitle {
   year: string | null;
   voteAverage: number | null;
   genreIds: number[];
-  /** Cuándo se guardó por primera vez (ISO 8601). */
+  /** When it was first stored (ISO 8601). */
   addedAt: string;
-  /** Valoración personal 1–5 (null = sin valorar). */
+  /** Personal rating from 1 to 5, or null when unrated. */
   rating: number | null;
-  /** Fecha de visto (ISO 8601 date) o null. */
+  /** Watched date (YYYY-MM-DD), or null. */
   watchedAt: string | null;
 }
 
-/** Una lista. Las predefinidas (`predefined: true`) no se pueden eliminar. */
+/**
+ * A user list.
+ *
+ * `predefined` lists cannot be renamed or deleted, but `normalize` in `store.ts` sets it to
+ * false on every list, so none exist today.
+ */
 export interface MovieList {
   id: string;
   name: string;
   predefined: boolean;
   createdAt: string;
-  /** Claves de títulos, en orden (primero = añadido más reciente). */
+  /** Title keys in order, most recently added first. */
   itemKeys: string[];
 }
 
-/** Documento completo persistido. `version` permite migraciones de esquema. */
+/** The whole persisted document; `version` allows schema migrations. */
 export interface AppData {
   version: number;
   titles: Record<string, StoredTitle>;
   lists: MovieList[];
 }
 
-// --- Detalle (vista inmersiva) ----------------------------------------------
+// --- Detail (immersive view) ------------------------------------------------
 
+/** An actor in a title's cast. */
 export interface CastMember {
   id: number;
   name: string;
@@ -65,12 +74,14 @@ export interface CastMember {
   profilePath: string | null;
 }
 
+/** A streaming, rental or purchase service. */
 export interface WatchProvider {
   providerId: number;
   providerName: string;
   logoPath: string | null;
 }
 
+/** Where to watch a title in one region, grouped by subscription, rent and buy. */
 export interface WatchProviders {
   link: string | null;
   flatrate: WatchProvider[];
@@ -78,11 +89,12 @@ export interface WatchProviders {
   buy: WatchProvider[];
 }
 
+/** The full detail of a title, for the detail view. */
 export interface MediaDetail extends MediaSummary {
   genres: { id: number; name: string }[];
-  /** Duración en minutos (películas). */
+  /** Runtime in minutes (movies only). */
   runtime: number | null;
-  /** Nº de temporadas (series). */
+  /** Number of seasons (TV shows only). */
   seasons: number | null;
   episodes: number | null;
   tagline: string | null;

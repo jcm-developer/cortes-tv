@@ -1,6 +1,9 @@
-// =============================================================================
-// Cliente de TheMovieDB (API v3). Solo lectura.
-// =============================================================================
+/**
+ * Read-only client for TheMovieDB API v3, called from the browser.
+ *
+ * Raw TMDB objects (snake case) are mapped to the app types at this boundary. See
+ * `docs/domains/catalog.md`.
+ */
 import type {
   MediaSummary,
   MediaType,
@@ -17,8 +20,19 @@ const API_KEY = import.meta.env.PUBLIC_TMDB_API_KEY ?? '';
 const LANG = import.meta.env.PUBLIC_TMDB_LANG ?? 'es-ES';
 const REGION = import.meta.env.PUBLIC_TMDB_REGION ?? 'ES';
 
+/**
+ * Checks whether a real TMDB API key is configured.
+ *
+ * @return False when the key is empty or still the `.env.example` placeholder.
+ */
 export const hasApiKey = () => Boolean(API_KEY && API_KEY !== 'tu_api_key_de_tmdb');
 
+/**
+ * A TMDB failure with a Spanish message that the UI can show as is.
+ *
+ * @param message - The user-facing message.
+ * @param status - The HTTP status, when the server answered.
+ */
 export class TmdbError extends Error {
   constructor(message: string, readonly status?: number) {
     super(message);
@@ -26,7 +40,8 @@ export class TmdbError extends Error {
   }
 }
 
-// --- Tamaños de imagen pensados para móvil (no cargar de más) ---------------
+// --- Image sizes ------------------------------------------------------------
+/** TMDB image sizes per use, chosen to keep mobile downloads small. */
 export const ImageSize = {
   posterSmall: 'w185',
   poster: 'w342',
@@ -37,6 +52,13 @@ export const ImageSize = {
   logo: 'w92',
 } as const;
 
+/**
+ * Builds the URL of a TMDB image.
+ *
+ * @param path - The image path from TMDB (`/abc.jpg`).
+ * @param size - The TMDB size name, one of `ImageSize`.
+ * @return The full URL, or null when there is no path.
+ */
 export function img(
   path: string | null | undefined,
   size: string = ImageSize.poster,
@@ -45,7 +67,17 @@ export function img(
   return `${IMG_BASE}/${size}${path}`;
 }
 
-// --- Fetch con manejo de errores -------------------------------------------
+// --- Fetch with error handling ---------------------------------------------
+/**
+ * Calls a TMDB endpoint with the API key and language, and parses the JSON response.
+ *
+ * @param path - The endpoint path (`/movie/550`).
+ * @param params - Extra query parameters; undefined, null and empty values are skipped.
+ * @param signal - Aborts the request.
+ * @return The parsed response body.
+ * @throws TmdbError When the key is missing, the network fails or TMDB answers with an error.
+ *     An `AbortError` is rethrown untouched.
+ */
 async function tmdbFetch<T>(
   path: string,
   params: Record<string, string | number | undefined> = {},
@@ -77,7 +109,8 @@ async function tmdbFetch<T>(
   return res.json() as Promise<T>;
 }
 
-// --- Mapeadores -------------------------------------------------------------
+// --- Mappers ----------------------------------------------------------------
+/** Returns the four-digit year of a TMDB date, or null when it has none. */
 function yearFrom(date?: string | null): string | null {
   if (!date) return null;
   const y = date.slice(0, 4);
@@ -98,13 +131,20 @@ interface RawMedia {
   overview?: string;
 }
 
+/**
+ * Maps a raw TMDB movie or TV result to a `MediaSummary`.
+ *
+ * @param raw - The raw result.
+ * @param forceType - The media type, for endpoints whose results have no `media_type`.
+ * @return The summary, or null for people and other non-title results.
+ */
 function mapSummary(raw: RawMedia, forceType?: MediaType): MediaSummary | null {
   const mediaType: MediaType | undefined =
     forceType ??
     (raw.media_type === 'movie' || raw.media_type === 'tv'
       ? (raw.media_type as MediaType)
       : undefined);
-  if (!mediaType) return null; // descarta personas y otros tipos
+  if (!mediaType) return null;
   return {
     id: raw.id,
     mediaType,
@@ -118,9 +158,15 @@ function mapSummary(raw: RawMedia, forceType?: MediaType): MediaSummary | null {
   };
 }
 
-// --- Endpoints públicos -----------------------------------------------------
+// --- Public endpoints -------------------------------------------------------
 
-/** /search/multi — películas, series y personas (personas descartadas). */
+/**
+ * Searches movies and TV shows (`/search/multi`); people in the results are dropped.
+ *
+ * @param query - The search text.
+ * @param signal - Aborts the request.
+ * @return The first page of results; empty for a blank query.
+ */
 export async function searchMulti(
   query: string,
   signal?: AbortSignal,
@@ -137,7 +183,12 @@ export async function searchMulti(
     .filter((m): m is MediaSummary => m !== null);
 }
 
-/** Tendencias de la semana (para rellenar la Home cuando aún no hay listas). */
+/**
+ * Returns this week's trending movies and TV shows (`/trending/all/week`).
+ *
+ * @param signal - Aborts the request.
+ * @return The trending titles.
+ */
 export async function trending(signal?: AbortSignal): Promise<MediaSummary[]> {
   const data = await tmdbFetch<{ results: RawMedia[] }>(
     '/trending/all/week',
@@ -149,7 +200,15 @@ export async function trending(signal?: AbortSignal): Promise<MediaSummary[]> {
     .filter((m): m is MediaSummary => m !== null);
 }
 
-/** Helper para endpoints tipo listado (resultados sin media_type). */
+/**
+ * Fetches a list endpoint whose results carry no `media_type`.
+ *
+ * @param path - The endpoint path.
+ * @param forceType - The media type of every result.
+ * @param params - Extra query parameters.
+ * @param signal - Aborts the request.
+ * @return The titles that have a poster.
+ */
 async function fetchList(
   path: string,
   forceType: MediaType,
@@ -162,23 +221,23 @@ async function fetchList(
     .filter((m): m is MediaSummary => m !== null && !!m.posterPath);
 }
 
-/** Películas mejor valoradas (/movie/top_rated). */
+/** Returns the top rated movies (`/movie/top_rated`). */
 export const topRatedMovies = (signal?: AbortSignal) =>
   fetchList('/movie/top_rated', 'movie', { page: 1 }, signal);
 
-/** Series mejor valoradas (/tv/top_rated). */
+/** Returns the top rated TV shows (`/tv/top_rated`). */
 export const topRatedTv = (signal?: AbortSignal) =>
   fetchList('/tv/top_rated', 'tv', { page: 1 }, signal);
 
-/** Películas populares ahora (/movie/popular). */
+/** Returns the currently popular movies (`/movie/popular`). */
 export const popularMovies = (signal?: AbortSignal) =>
   fetchList('/movie/popular', 'movie', { page: 1 }, signal);
 
-/** Series populares ahora (/tv/popular). */
+/** Returns the currently popular TV shows (`/tv/popular`). */
 export const popularTv = (signal?: AbortSignal) =>
   fetchList('/tv/popular', 'tv', { page: 1 }, signal);
 
-/** Clásicos imprescindibles: muy valoradas y estrenadas hasta el año 2000. */
+/** Returns classic movies: best rated with at least 4000 votes, released up to 2000. */
 export const classicMovies = (signal?: AbortSignal) =>
   fetchList(
     '/discover/movie',
@@ -191,7 +250,7 @@ export const classicMovies = (signal?: AbortSignal) =>
     signal,
   );
 
-/** En cartelera ahora (/movie/now_playing). */
+/** Returns the movies now in theaters in the configured region (`/movie/now_playing`). */
 export const nowPlaying = (signal?: AbortSignal) =>
   fetchList('/movie/now_playing', 'movie', { page: 1, region: REGION }, signal);
 
@@ -223,6 +282,13 @@ interface RawProvider {
   logo_path?: string | null;
 }
 
+/**
+ * Maps the watch providers of one region.
+ *
+ * @param raw - The raw detail, with `watch/providers` appended.
+ * @param region - The preferred region; falls back to `US`, then to the first region returned.
+ * @return The providers, or null when TMDB has none.
+ */
 function mapProviders(
   raw: RawDetail,
   region: string,
@@ -245,7 +311,14 @@ function mapProviders(
   };
 }
 
-/** /movie/{id} o /tv/{id} con credits + watch/providers. */
+/**
+ * Returns the full detail of a movie or TV show, with cast and watch providers, in one request.
+ *
+ * @param mediaType - The media type.
+ * @param id - The TMDB id.
+ * @param signal - Aborts the request.
+ * @return The detail, with the first 18 cast members.
+ */
 export async function getDetail(
   mediaType: MediaType,
   id: number,
@@ -278,9 +351,17 @@ export async function getDetail(
   };
 }
 
-// --- Géneros (cache simple en memoria + localStorage) -----------------------
+// --- Genres (memory and localStorage cache) ---------------------------------
 let genreCache: Record<number, string> | null = null;
 
+/**
+ * Returns the names of every movie and TV genre, by id.
+ *
+ * Cached in memory and in `localStorage` with no expiry, so a language change needs the
+ * `cortes-tv:genres` key cleared.
+ *
+ * @return The genre map.
+ */
 export async function getGenreMap(): Promise<Record<number, string>> {
   if (genreCache) return genreCache;
   try {

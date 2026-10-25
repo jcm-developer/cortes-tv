@@ -1,5 +1,10 @@
 <script lang="ts">
-  // Iconos SF-symbols-like en SVG, trazo fino estilo iOS.
+  /**
+   * Renders an SF Symbols-like SVG icon with the thin iOS stroke.
+   *
+   * @param name - The icon.
+   * @param size - The width and height, in pixels.
+   */
   interface Props {
     name:
       | 'home'

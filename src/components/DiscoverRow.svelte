@@ -5,6 +5,13 @@
   import type { MediaSummary } from '../lib/types';
   import { openDetail, openAddSheet } from '../lib/ui';
 
+  /**
+   * Loads one TMDB discovery row and shows it as a carousel of posters.
+   *
+   * @param title - The row heading.
+   * @param subtitle - A smaller line next to the heading.
+   * @param loader - Fetches the titles; receives a signal that aborts on unmount.
+   */
   interface Props {
     title: string;
     subtitle?: string;

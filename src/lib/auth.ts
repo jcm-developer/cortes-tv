@@ -1,24 +1,32 @@
-// =============================================================================
-// Login de un solo usuario para un sitio estático.
-// Las credenciales se definen en build mediante variables de entorno
-// (PUBLIC_AUTH_USER / PUBLIC_AUTH_PASSWORD) — en .env y en los secretos de
-// GitHub Actions. La sesión se guarda en localStorage SIN caducidad.
-//
-// ⚠️ Aviso: en un sitio estático estas credenciales viajan en el bundle del
-// cliente. Esto NO es seguridad real (sirve para "cerrar la puerta", no para
-// proteger datos sensibles). Para auth real haría falta un backend.
-// =============================================================================
+/**
+ * Single-user login for a static site.
+ *
+ * The credentials are set at build time (`PUBLIC_AUTH_USER`, `PUBLIC_AUTH_PASSWORD`) and ship in
+ * the client bundle, so this only closes the door; it is not real security. The session is
+ * kept in `localStorage` with no expiry. See `docs/domains/auth.md`.
+ */
 import { writable, derived } from 'svelte/store';
 
 const USER = (import.meta.env.PUBLIC_AUTH_USER ?? '').trim();
 const PASS = import.meta.env.PUBLIC_AUTH_PASSWORD ?? '';
 const KEY = 'cortes-tv:session';
 
-/** ¿Hay credenciales configuradas? Si no, el acceso es abierto. */
+/**
+ * Checks whether login credentials are configured.
+ *
+ * @return True when both the user and the password are set; false means open access.
+ */
 export const authRequired = (): boolean => Boolean(USER && PASS);
 
+/**
+ * Returns the session marker stored on login.
+ *
+ * It embeds the user name, so changing the configured user invalidates old sessions.
+ *
+ * @return The marker, base64 encoded when `btoa` accepts the input.
+ */
 function marker(): string {
-  // Marcador no criptográfico; cambia si cambia el usuario → invalida sesiones viejas.
+  // Not cryptographic: it only has to change when the configured user changes.
   try {
     return btoa(`v1:${encodeURIComponent(USER)}`);
   } catch {
@@ -26,6 +34,11 @@ function marker(): string {
   }
 }
 
+/**
+ * Reads the stored session and checks it against the current marker.
+ *
+ * @return True when a valid session is stored; false without storage or on any storage error.
+ */
 function loadSession(): boolean {
   if (typeof localStorage === 'undefined') return false;
   try {
@@ -35,8 +48,16 @@ function loadSession(): boolean {
   }
 }
 
+/** Whether the user has logged in, restored from storage on load. */
 export const session = writable<boolean>(loadSession());
 
+/**
+ * Logs in when the credentials match the configured ones, and stores the session.
+ *
+ * @param user - The user name; surrounding spaces are ignored.
+ * @param pass - The password, compared as typed.
+ * @return True when the credentials match.
+ */
 export function login(user: string, pass: string): boolean {
   if (user.trim() === USER && pass === PASS) {
     try {
@@ -50,6 +71,7 @@ export function login(user: string, pass: string): boolean {
   return false;
 }
 
+/** Logs out: removes the stored session and clears `session`. */
 export function logout(): void {
   try {
     localStorage.removeItem(KEY);
@@ -59,5 +81,5 @@ export function logout(): void {
   session.set(false);
 }
 
-/** Acceso permitido: true si no se exige login, o si la sesión es válida. */
+/** Whether the app may be shown: true when login is not required or the session is valid. */
 export const authed = derived(session, (s) => !authRequired() || s);

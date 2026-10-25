@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** Renders the current toast message from the `toast` store. */
   import { toast } from '../lib/ui';
 </script>
 

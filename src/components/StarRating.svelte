@@ -1,5 +1,12 @@
 <script lang="ts">
   import Icon from './Icon.svelte';
+  /**
+   * Renders five stars for a 1 to 5 rating; pressing the current value clears it.
+   *
+   * @param value - The rating, or null when unrated.
+   * @param onChange - Called with the new rating, or null when cleared.
+   * @param size - The star size, in pixels.
+   */
   interface Props {
     value: number | null;
     onChange: (v: number | null) => void;

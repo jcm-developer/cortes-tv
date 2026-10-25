@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** Renders the top navigation: tab links on desktop, a drawer on mobile, theme and settings. */
   import Icon from './Icon.svelte';
   import { activeTab, settingsOpen, theme, toggleTheme, type Tab } from '../lib/ui';
 

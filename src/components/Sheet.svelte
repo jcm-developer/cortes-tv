@@ -1,5 +1,13 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  /**
+   * Renders a modal bottom sheet that closes on Escape and on backdrop press.
+   *
+   * @param open - Whether the sheet is shown.
+   * @param title - The sheet heading.
+   * @param onClose - Called when the user dismisses the sheet.
+   * @param children - The sheet content.
+   */
   interface Props {
     open: boolean;
     title?: string;
